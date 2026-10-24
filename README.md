@@ -5,6 +5,7 @@ creative, high-stakes conversations.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/hidezfzefz/LingoEnglish)](https://github.com/hidezfzefz/LingoEnglish/releases/latest)
+[![Content audit](https://github.com/hidezfzefz/LingoEnglish/actions/workflows/content-audit.yml/badge.svg)](https://github.com/hidezfzefz/LingoEnglish/actions/workflows/content-audit.yml)
 
 ## Download
 
@@ -112,7 +113,7 @@ Run the headless content audit with:
 ./gradlew --stop
 ```
 
-It verifies:
+CI runs the same audit on every push and pull request. It verifies:
 
 - unique lesson and exercise IDs;
 - four options and a valid answer key for every scored question;
