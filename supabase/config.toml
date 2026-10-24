@@ -1,0 +1,7 @@
+project_id = "lingo-live"
+
+[functions.livekit-token]
+verify_jwt = true
+
+[functions.auth-callback]
+verify_jwt = false
