@@ -83,6 +83,8 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 
+    testImplementation("junit:junit:4.13.2")
+
     implementation(platform("io.github.jan-tennert.supabase:bom:3.8.0"))
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.github.jan-tennert.supabase:postgrest-kt")

@@ -105,12 +105,21 @@ scripts/      Local build configuration helpers
 
 ## Tests and verification
 
-The content is checked with a headless audit that verifies:
+Run the headless content audit with:
+
+```bash
+./gradlew :app:testDebugUnitTest --tests com.lingo.app.ContentAuditTest --console=plain
+./gradlew --stop
+```
+
+It verifies:
 
 - unique lesson and exercise IDs;
 - four options and a valid answer key for every scored question;
 - 12 questions and all four skills in every level exam;
-- 10 unique, skill-balanced questions in every weekly selection;
+- 300 randomized weekly selections per level, with 10 unique,
+  skill-balanced questions in every selection;
+- shuffling never changes the correct answer;
 - a word target, success criteria, and model answer for every creative task.
 
 On-device smoke tests cover the login gate, password recovery, lessons,
