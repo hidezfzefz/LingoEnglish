@@ -204,7 +204,7 @@ private fun ScenarioCard(
     onClick: () -> Unit,
 ) {
     val background = listOf(Seafoam, Peach, Sky)[index % 3]
-    val accent = listOf(DeepTeal, Color(0xFF8C3B27), Color(0xFF234A6E))[index % 3]
+    val accent = listOf(DeepTeal, CoralDeep, Color(0xFF234A6E))[index % 3]
 
     Surface(
         modifier = Modifier

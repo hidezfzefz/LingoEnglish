@@ -316,7 +316,7 @@ fun ProgressScreen(store: ProgressStore, onOpenLevelPath: () -> Unit = {}) {
                         Text(
                             text = if (store.streak > 0) "You're on a roll" else "Start your streak",
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color(0xFF8C3B27),
+                            color = CoralDeep,
                         )
                         Text(
                             text = if (store.streak > 0) {
@@ -325,13 +325,13 @@ fun ProgressScreen(store: ProgressStore, onOpenLevelPath: () -> Unit = {}) {
                                 "One lesson today is all it takes."
                             },
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF8C3B27).copy(alpha = 0.72f),
+                            color = CoralDeep.copy(alpha = 0.72f),
                         )
                     }
                     Text(
                         text = if (store.streak > 0) "${store.streak}" else "0",
                         style = MaterialTheme.typography.displaySmall,
-                        color = Color(0xFF8C3B27),
+                        color = CoralDeep,
                     )
                 }
             }

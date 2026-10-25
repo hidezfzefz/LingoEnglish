@@ -208,7 +208,7 @@ fun PracticeScreen(
                         title = "Grammar",
                         subtitle = "Smooth out the tricky bits",
                         background = Peach,
-                        accent = Color(0xFF8C3B27),
+                        accent = CoralDeep,
                         modifier = Modifier.weight(1f),
                         onClick = { onOpenQuiz(PracticeMode.GRAMMAR) },
                     )
@@ -356,7 +356,7 @@ private fun DailyChallengeCard(
                 text = if (todayDone) "Do it again" else "Start challenge",
                 onClick = onClick,
                 container = Paper,
-                contentColor = Color(0xFF8C3B27),
+                contentColor = CoralDeep,
                 trailingArrow = true,
                 modifier = Modifier.fillMaxWidth(),
             )

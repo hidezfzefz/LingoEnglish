@@ -72,7 +72,7 @@ data class AccentPalette(
 
 fun paletteFor(accent: Accent): AccentPalette = when (accent) {
     Accent.GREEN -> AccentPalette(Emerald, Mint, Forest)
-    Accent.CORAL -> AccentPalette(Coral, Peach, Color(0xFF8C3B27))
+    Accent.CORAL -> AccentPalette(Coral, Peach, CoralDeep)
     Accent.BLUE -> AccentPalette(Blue, Sky, Color(0xFF234A6E))
     Accent.PURPLE -> AccentPalette(Purple, Lavender, Color(0xFF453572))
     Accent.TEAL -> AccentPalette(Teal, Seafoam, DeepTeal)
@@ -200,7 +200,7 @@ fun ProgressLine(
 ) {
     val animated by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
-        animationSpec = tween(600, easing = FastOutSlowInEasing),
+        animationSpec = tween(LingoMotion.expressive, easing = FastOutSlowInEasing),
         label = "lineProgress",
     )
     Box(
@@ -232,7 +232,7 @@ fun GoalRing(
 ) {
     val animated by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
-        animationSpec = tween(800, easing = FastOutSlowInEasing),
+        animationSpec = tween(LingoMotion.celebration, easing = FastOutSlowInEasing),
         label = "goalRing",
     )
     Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {

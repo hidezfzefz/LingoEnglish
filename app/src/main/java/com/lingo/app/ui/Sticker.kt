@@ -277,7 +277,7 @@ private fun stickerColors(kind: StickerKind): StickerColors = when (kind) {
     StickerKind.TROPHY,
     StickerKind.FLOWER,
     StickerKind.PUZZLE,
-    -> StickerColors(Peach, Color(0xFF8C3B27))
+    -> StickerColors(Peach, CoralDeep)
 
     StickerKind.COMPASS,
     StickerKind.PLANE,

@@ -25,6 +25,7 @@ val MintDeep = Color(0xFFCFE7D7)
 val Lime = Color(0xFFD9F27C)
 val LimeSoft = Color(0xFFEEF7CD)
 val Coral = Color(0xFFEC7256)
+val CoralDeep = Color(0xFF8C3B27)
 val Peach = Color(0xFFFCE5DB)
 val Blue = Color(0xFF3B6E9E)
 val Sky = Color(0xFFE3EDF8)
@@ -36,7 +37,9 @@ val DeepTeal = Color(0xFF1F504C)
 val Gold = Color(0xFFE9B949)
 val Sand = Color(0xFFF1E9DA)
 val Line = Color(0xFFE8E0D2)
-val Muted = Color(0xFF6E7D75)
+// Darkened from #6E7D75 so small secondary text clears 4.5:1 on cream,
+// paper, and sand surfaces (5.46:1, 5.74:1, and 4.88:1).
+val Muted = Color(0xFF59685F)
 val Danger = Color(0xFFC2493D)
 val PureWhite = Color(0xFFFFFFFF)
 
@@ -167,6 +170,14 @@ val LingoTypography = Typography(
         letterSpacing = 1.3.sp,
     ),
 )
+
+/** Shared motion timings. Compose still honours the system animation scale. */
+object LingoMotion {
+    const val quick = 150
+    const val standard = 240
+    const val expressive = 600
+    const val celebration = 800
+}
 
 val LingoShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),

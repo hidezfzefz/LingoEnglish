@@ -65,7 +65,7 @@ fun QuizScreen(
     var awardedXp by rememberSaveable(mode.name, attempt) { mutableIntStateOf(0) }
 
     val palette = when (mode) {
-        PracticeMode.DAILY -> AccentPalette(Coral, Peach, Color(0xFF8C3B27))
+        PracticeMode.DAILY -> AccentPalette(Coral, Peach, CoralDeep)
         PracticeMode.LISTENING -> AccentPalette(Blue, Sky, Color(0xFF234A6E))
         PracticeMode.GRAMMAR -> AccentPalette(Purple, Lavender, Color(0xFF453572))
         PracticeMode.VOCABULARY -> AccentPalette(Emerald, Mint, Forest)

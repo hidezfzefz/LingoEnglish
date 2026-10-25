@@ -67,7 +67,7 @@ fun ExerciseView(
             color = when (exercise.kind) {
                 ExerciseKind.LISTENING -> Blue
                 ExerciseKind.WRITE -> Forest
-                else -> Color(0xFF8C3B27)
+                else -> CoralDeep
             },
         )
         Spacer(Modifier.height(14.dp))
