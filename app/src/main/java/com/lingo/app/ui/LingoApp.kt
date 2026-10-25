@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingo.app.BuildConfig
 import com.lingo.app.data.CefrLevel
 import com.lingo.app.data.CallPhase
 import com.lingo.app.data.CallStore
@@ -564,7 +565,7 @@ private fun SettingsSheet(
             )
             Spacer(Modifier.height(24.dp))
             Text(
-                text = "Lingo · English, every day\nVersion 1.4",
+                text = "Lingo · English, every day\nVersion ${BuildConfig.VERSION_NAME}",
                 style = MaterialTheme.typography.bodySmall,
                 color = Muted,
                 textAlign = TextAlign.Center,

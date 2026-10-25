@@ -1,6 +1,6 @@
-# Lingo Live — 1.4 setup
+# Lingo Live — setup
 
-Lingo 1.4 replaces the old text chat with **live, audio-only calls**. Supabase
+Lingo 1.4 introduced **live, audio-only calls** in place of the old text chat. Supabase
 owns accounts, same-level matching, friend codes, ratings, reports, blocks, and
 the weekly leaderboard. LiveKit Cloud carries the voice.
 
@@ -289,7 +289,7 @@ Use two accounts. Both should be signed in on the Call tab.
 - Weekly scores are submitted after the local weekly test and only the first
   server-side submission per week counts.
 - Incoming calls require the app process to be alive; there is no push
-  notification or background call service in 1.4. The call screen keeps the
+  notification or background call service. The call screen keeps the
   display awake while a call is open.
 
 ## Files
@@ -305,7 +305,7 @@ Use two accounts. Both should be signed in on the Call tab.
 | `config.toml` | CLI function verification settings |
 | `.env.local.example` | Template for local deployment secrets |
 | `deploy.sh` | Optional one-command CLI deployment |
-| `legacy_chat_schema.sql` | Historical text-chat schema; not used by 1.4 |
+| `legacy_chat_schema.sql` | Historical text-chat schema; not used since 1.4 |
 
 The schema was validated against PostgreSQL 16 with stubbed Supabase auth
 roles/claims. Hosted Supabase and LiveKit still require the two-account QA pass

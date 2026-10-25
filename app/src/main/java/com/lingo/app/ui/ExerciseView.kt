@@ -46,9 +46,9 @@ fun ExerciseView(
     checked: Boolean,
     onSelect: (Int) -> Unit,
     onSpeak: (String) -> Unit,
+    modifier: Modifier = Modifier,
     text: String = "",
     onTextChange: (String) -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     val isCorrect = checked && exercise.isAnswerCorrect(selectedIndex, text)
     Column(modifier = modifier.fillMaxWidth()) {

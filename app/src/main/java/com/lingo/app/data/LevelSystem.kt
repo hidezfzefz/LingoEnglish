@@ -124,6 +124,23 @@ object LingoLevels {
             0,
             TestSkill.PRAGMATICS,
         ),
+        LevelQuestion(
+            "Read: “The shop is open from 9 a.m. to 6 p.m. It is closed on Sundays.” When is the shop closed?",
+            listOf("On Sundays", "At 9 a.m.", "At 6 p.m.", "Every afternoon"),
+            0,
+            TestSkill.READING,
+        ),
+        LevelQuestion(
+            "Someone speaks too quickly. What is the best thing to say?",
+            listOf(
+                "Could you say that again, please?",
+                "Speak slowly.",
+                "What?",
+                "Stop talking.",
+            ),
+            0,
+            TestSkill.PRAGMATICS,
+        ),
     )
 
     private val exams: Map<CefrLevel, List<LevelQuestion>> = mapOf(
@@ -177,6 +194,28 @@ object LingoLevels {
                     "Speak more slowly.",
                     "You must speak slowly.",
                     "Slowly!",
+                ),
+                0,
+                TestSkill.PRAGMATICS,
+            ),
+            LevelQuestion(
+                "Read: “Hi Priya, the train is delayed by 30 minutes. I'll be at the station around 6:15. — Leo” Why will Leo arrive later?",
+                listOf(
+                    "His train is delayed",
+                    "He missed the train",
+                    "He is already at the station",
+                    "He is meeting Priya at work",
+                ),
+                0,
+                TestSkill.READING,
+            ),
+            LevelQuestion(
+                "A friend invites you to dinner, but you already have plans. What is the best reply?",
+                listOf(
+                    "Thanks for asking, but I'm busy tonight. Maybe next week?",
+                    "No.",
+                    "I don't want to come.",
+                    "Why did you invite me?",
                 ),
                 0,
                 TestSkill.PRAGMATICS,
@@ -236,6 +275,28 @@ object LingoLevels {
                     "No.",
                     "I can't.",
                     "Moving is boring.",
+                ),
+                0,
+                TestSkill.PRAGMATICS,
+            ),
+            LevelQuestion(
+                "Read: “The course is for people who can already hold a short conversation but want to sound more natural in meetings. Classes run in the evening.” Who is the course for?",
+                listOf(
+                    "Learners who want more natural meeting English",
+                    "Complete beginners",
+                    "People who only write English",
+                    "People who are free during the day",
+                ),
+                0,
+                TestSkill.READING,
+            ),
+            LevelQuestion(
+                "In a meeting, you do not understand a technical term. What is the most professional response?",
+                listOf(
+                    "Could you explain what you mean by that term?",
+                    "I don't know this word.",
+                    "Speak more simply.",
+                    "Everyone knows that.",
                 ),
                 0,
                 TestSkill.PRAGMATICS,
@@ -304,6 +365,28 @@ object LingoLevels {
                 0,
                 TestSkill.PRAGMATICS,
             ),
+            LevelQuestion(
+                "Read: “The pilot scheme will run in three schools before any national rollout. Participating schools will receive training but no extra funding.” What limitation does the scheme have?",
+                listOf(
+                    "Schools receive training but no additional money",
+                    "It is already national",
+                    "Only three teachers are involved",
+                    "It has already ended",
+                ),
+                0,
+                TestSkill.READING,
+            ),
+            LevelQuestion(
+                "A client wants a report tomorrow, but you need three days. What is the best response?",
+                listOf(
+                    "I can't deliver tomorrow, but I can send a full draft on Thursday and the final version on Friday.",
+                    "No.",
+                    "That's impossible.",
+                    "You should have asked earlier.",
+                ),
+                0,
+                TestSkill.PRAGMATICS,
+            ),
         ),
         CefrLevel.C1 to listOf(
             LevelQuestion("Rarely ____ such a compelling argument.", listOf("I have heard", "have I heard", "I heard", "did I heard"), 1),
@@ -367,6 +450,28 @@ object LingoLevels {
                     "No.",
                     "That's impossible.",
                     "Why do you need a discount?",
+                ),
+                0,
+                TestSkill.PRAGMATICS,
+            ),
+            LevelQuestion(
+                "Read: “The report stops short of recommending a ban, arguing that the evidence is insufficient. It does, however, call for tighter monitoring.” What does the report recommend?",
+                listOf(
+                    "Tighter monitoring rather than a ban",
+                    "An immediate ban",
+                    "No action at all",
+                    "Less monitoring",
+                ),
+                0,
+                TestSkill.READING,
+            ),
+            LevelQuestion(
+                "A senior colleague dismisses your proposal in front of the team. What is the most effective response?",
+                listOf(
+                    "I'd like to understand which part concerns you most. Could we review the evidence after the meeting?",
+                    "You're wrong.",
+                    "You always do this.",
+                    "Fine, forget it.",
                 ),
                 0,
                 TestSkill.PRAGMATICS,
@@ -453,6 +558,28 @@ object LingoLevels {
                     "We reject your proposal.",
                     "Your proposal is too expensive.",
                     "Don't contact us again.",
+                ),
+                0,
+                TestSkill.PRAGMATICS,
+            ),
+            LevelQuestion(
+                "Read: “The proposal is attractive in theory; the difficulty lies in the transition, when existing systems must run alongside the new one. It is here that most reforms fail.” What does the writer identify as the main risk?",
+                listOf(
+                    "The transition period",
+                    "The underlying theory",
+                    "The cost of new systems",
+                    "Public opposition",
+                ),
+                0,
+                TestSkill.READING,
+            ),
+            LevelQuestion(
+                "At a public panel, a questioner misrepresents your position. What is the most effective response?",
+                listOf(
+                    "I think that's a different claim from the one I made. To be precise, I argued that the policy is premature, not that it is unnecessary.",
+                    "You weren't listening.",
+                    "That is a stupid question.",
+                    "I have already answered that.",
                 ),
                 0,
                 TestSkill.PRAGMATICS,
@@ -553,6 +680,22 @@ object LingoLevels {
                 ),
                 0,
                 TestSkill.READING,
+            ),
+            LevelQuestion(
+                "It is not so much the cost ____ the principle that concerns them.",
+                listOf("as", "like", "than", "that"),
+                0,
+            ),
+            LevelQuestion(
+                "A journalist asks a leading question that invites you to criticise a colleague. What is the most professional response?",
+                listOf(
+                    "I won't speak for my colleague, but I can tell you what our review found and what we're changing.",
+                    "That's a ridiculous question.",
+                    "Off the record, yes.",
+                    "No comment.",
+                ),
+                0,
+                TestSkill.PRAGMATICS,
             ),
         ),
     )

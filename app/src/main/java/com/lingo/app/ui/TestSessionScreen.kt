@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -360,6 +361,8 @@ fun TestSessionScreen(
                     level = store.cefrLevel,
                     weeklyScore = store.weeklyScore,
                     breakdown = breakdown,
+                    questions = questions,
+                    answers = answers,
                     onClose = onClose,
                 )
             }
@@ -500,6 +503,8 @@ private fun TestResult(
     level: CefrLevel,
     weeklyScore: Int,
     breakdown: List<SkillScore>,
+    questions: List<PreparedQuestion>,
+    answers: List<Int>,
     onClose: () -> Unit,
 ) {
     val invalid = phase == TestPhase.INVALIDATED
@@ -568,6 +573,10 @@ private fun TestResult(
         if (breakdown.isNotEmpty()) {
             Spacer(Modifier.height(18.dp))
             SkillBreakdown(breakdown)
+        }
+        if (!weekly && phase == TestPhase.RESULT) {
+            Spacer(Modifier.height(14.dp))
+            AnswerReview(questions = questions, answers = answers)
         }
         if (!weekly && !passed) {
             Spacer(Modifier.height(14.dp))
@@ -672,6 +681,95 @@ private fun SkillBreakdown(breakdown: List<SkillScore>) {
                 style = MaterialTheme.typography.bodySmall,
                 color = Muted,
             )
+        }
+    }
+}
+
+@Composable
+private fun AnswerReview(
+    questions: List<PreparedQuestion>,
+    answers: List<Int>,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        color = Paper,
+        border = androidx.compose.foundation.BorderStroke(1.dp, Line),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "ANSWER REVIEW",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Muted,
+                    )
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        if (expanded) "Every question, with the reason." else "See what you missed.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = InkSoft,
+                    )
+                }
+                TextButton(onClick = { expanded = !expanded }) {
+                    Text(
+                        if (expanded) "Hide" else "Review",
+                        color = Forest,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+            if (expanded) {
+                Spacer(Modifier.height(10.dp))
+                questions.forEachIndexed { index, question ->
+                    if (index > 0) {
+                        HorizontalDivider(
+                            color = Line,
+                            modifier = Modifier.padding(vertical = 12.dp),
+                        )
+                    }
+                    val chosenIndex = answers.getOrNull(index) ?: -1
+                    val chosen = question.options.getOrNull(chosenIndex)
+                    val correct = chosenIndex == question.correctIndex
+                    Text(
+                        "${index + 1}. ${question.prompt}",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Ink,
+                    )
+                    Spacer(Modifier.height(5.dp))
+                    if (correct) {
+                        Text(
+                            "Correct — ${question.options[question.correctIndex]}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Emerald,
+                        )
+                    } else {
+                        Text(
+                            if (chosen == null) "No answer" else "Your answer: $chosen",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Danger,
+                        )
+                        Text(
+                            "Correct answer: ${question.options[question.correctIndex]}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Emerald,
+                        )
+                    }
+                    if (question.explanation.isNotBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            question.explanation,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Muted,
+                        )
+                    }
+                }
+            }
         }
     }
 }

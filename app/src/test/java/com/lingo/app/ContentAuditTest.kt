@@ -30,6 +30,16 @@ class ContentAuditTest {
         val lessons = LingoContent.lessons
         check(units.size == 6, "expected 6 units, got ${units.size}")
         check(lessons.size == 20, "expected 20 lessons, got ${lessons.size}")
+        check(units.map { it.id }.distinct().size == units.size, "unit ids must be unique")
+        check(units.all { it.lessons.isNotEmpty() }, "every unit needs at least one lesson")
+        check(
+            units.flatMap { it.lessons }.map { it.id }.sorted() == lessons.map { it.id }.sorted(),
+            "the lesson list must match the lessons inside each unit",
+        )
+        check(
+            units.all { unit -> unit.lessons.all { it.unitId == unit.id } },
+            "every lesson must point back to its containing unit",
+        )
         check(lessons.map { it.id }.distinct().size == lessons.size, "lesson ids must be unique")
         check(
             lessons.all { it.slides.isNotEmpty() && it.exercises.isNotEmpty() },
@@ -78,10 +88,11 @@ class ContentAuditTest {
                 exam.all { it.options.size == 4 && it.correctIndex in it.options.indices },
                 "$level exam contains a malformed answer key",
             )
-            val examSkills = exam.map { it.skill }.toSet()
+            val examSkillCounts = exam.groupingBy { it.skill }.eachCount()
+            val expectedPerSkill = LingoLevels.LEVEL_QUESTION_COUNT / TestSkill.entries.size
             check(
-                examSkills.size == TestSkill.entries.size,
-                "$level exam does not cover every skill: $examSkills",
+                TestSkill.entries.all { examSkillCounts[it] == expectedPerSkill },
+                "$level exam is not balanced: $examSkillCounts",
             )
 
             repeat(300) { attempt ->
@@ -98,9 +109,11 @@ class ContentAuditTest {
                     weekly.all { it.options.size == 4 && it.correctIndex in it.options.indices },
                     "$level weekly attempt $attempt contains a malformed answer key",
                 )
+                val weeklySkillCounts = weekly.groupingBy { it.skill }.eachCount()
                 check(
-                    weekly.map { it.skill }.toSet().size == TestSkill.entries.size,
-                    "$level weekly attempt $attempt does not cover every skill",
+                    weeklySkillCounts.keys == TestSkill.entries.toSet() &&
+                        (weeklySkillCounts.values.max() - weeklySkillCounts.values.min()) <= 1,
+                    "$level weekly attempt $attempt is not balanced: $weeklySkillCounts",
                 )
             }
 

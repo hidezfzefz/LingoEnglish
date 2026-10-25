@@ -26,7 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -182,7 +182,7 @@ fun SpeakButton(
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = Icons.Rounded.VolumeUp,
+            imageVector = Icons.AutoMirrored.Rounded.VolumeUp,
             contentDescription = "Play audio",
             tint = tint,
             modifier = Modifier.size(size * 0.46f),
@@ -338,8 +338,8 @@ fun StatPill(
 @Composable
 fun BackHeader(
     onBack: () -> Unit,
-    title: String = "",
     modifier: Modifier = Modifier,
+    title: String = "",
     trailing: (@Composable () -> Unit)? = null,
 ) {
     Row(

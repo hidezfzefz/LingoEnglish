@@ -27,3 +27,7 @@ jobs:
           ./gradlew :app:testDebugUnitTest
           --tests com.lingo.app.ContentAuditTest
           --no-daemon --max-workers=2 --console=plain
+      - name: Run Android Lint
+        run: >-
+          ./gradlew :app:lintDebug
+          --no-daemon --max-workers=2 --console=plain

@@ -14,7 +14,7 @@ Install the latest APK from the
 Android 8.0 (API 26) or newer is required.
 
 ```bash
-adb install -r LingoEnglish-1.4.apk
+adb install -r LingoEnglish-1.5.apk
 ```
 
 The published APK is a sideload preview signed with the project's debug key.
@@ -29,9 +29,11 @@ keystore and keep it out of version control.
 - **20 guided “Create” tasks** — one per lesson. Learners invent, explain,
   paraphrase, negotiate, pitch, and tell stories, with success criteria,
   optional sentence starters, a word target, and a model answer.
-- **Serious level exams** with 12 questions across grammar, vocabulary,
-  reading, and use of English. A pass is 10/12, the timer is 18 minutes, and
-  results include a skill-by-skill breakdown.
+- **Serious level exams** with 12 questions balanced three per skill across
+  grammar, vocabulary, reading, and use of English. Every attempt is drawn
+  from a 14-question level bank, so retakes are not identical. A pass is
+  10/12, the timer is 18 minutes, and results include a skill-by-skill
+  breakdown and an answer review with explanations.
 - **Weekly tests** with 10 questions drawn from the current and previous level.
   Question selection is deduplicated and balanced across all four skills.
 - **Live voice calls** with same-level matching, friend-code cross-level calls,

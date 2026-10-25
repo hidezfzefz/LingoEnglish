@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Single-colour L monogram for themed launcher icons. -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M38,32c0,-3.3 2.7,-6 6,-6h2c3.3,0 6,2.7 6,6v32h18c3.3,0 6,2.7 6,6v2c0,3.3 -2.7,6 -6,6h-26c-3.3,0 -6,-2.7 -6,-6z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M70,34m-7,0a7,7 0 1,0 14,0a7,7 0 1,0 -14,0" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M79,54l1.8,4.7 4.7,1.8 -4.7,1.8 -1.8,4.7 -1.8,-4.7 -4.7,-1.8 4.7,-1.8z" />
+</vector>
