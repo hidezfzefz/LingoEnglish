@@ -76,14 +76,10 @@ enum class Tab(val label: String, val sticker: StickerKind) {
 @Composable
 fun LingoApp(
     store: ProgressStore,
+    callStore: CallStore,
     recoveryIntent: Intent? = null,
     onRecoveryIntentHandled: () -> Unit = {},
 ) {
-    val context = LocalContext.current
-    val callStore = remember { CallStore(context, store) }
-    DisposableEffect(callStore) {
-        onDispose { callStore.dispose() }
-    }
     val voice = rememberSpeaker()
     val speaker: (String) -> Unit = voice.speak
     var tabName by rememberSaveable { mutableStateOf(Tab.HOME.name) }

@@ -9,9 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.lingo.app.data.ProgressStore
 import com.lingo.app.ui.LingoApp
 import com.lingo.app.ui.LingoTheme
 
@@ -25,11 +23,12 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
         )
+        val app = application as LingoApplication
         setContent {
             LingoTheme {
-                val store = remember { ProgressStore(applicationContext) }
                 LingoApp(
-                    store = store,
+                    store = app.progressStore,
+                    callStore = app.callStore,
                     recoveryIntent = recoveryIntent,
                     onRecoveryIntentHandled = {
                         recoveryIntent = null

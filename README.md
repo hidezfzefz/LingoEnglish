@@ -14,7 +14,7 @@ Install the latest APK from the
 Android 8.0 (API 26) or newer is required.
 
 ```bash
-adb install -r LingoEnglish-1.6.apk
+adb install -r LingoEnglish-1.7.apk
 ```
 
 The published APK is a sideload preview signed with the project's debug key.
@@ -36,6 +36,9 @@ keystore and keep it out of version control.
   breakdown and an answer review with explanations.
 - **Weekly tests** with 10 questions drawn from the current and previous level.
   Question selection is deduplicated and balanced across all four skills.
+- **Rotation-safe testing**: questions, answers, results, and the countdown are
+  preserved when the phone rotates, so a configuration change never resets or
+  voids an attempt. An active voice call also survives rotation.
 - **Live voice calls** with same-level matching, friend-code cross-level calls,
   ratings, reporting, and blocking.
 - **Email/password accounts** with password recovery and a mandatory greeting

@@ -1,5 +1,8 @@
 package com.lingo.app.ui
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.SystemClock
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -42,12 +45,17 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -65,6 +73,9 @@ import com.lingo.app.data.TestKind
 import com.lingo.app.data.TestSkill
 import com.lingo.app.data.WeeklyEntry
 import kotlinx.coroutines.delay
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -76,6 +87,42 @@ private data class SkillScore(
     val correct: Int,
     val total: Int,
 )
+
+private val TestJson = Json { ignoreUnknownKeys = true }
+
+/**
+ * The prepared questions must survive rotation byte-for-byte: the saved
+ * answers point into this exact list. Re-shuffling after recreation would mark
+ * correct answers wrong and change the test the learner sat.
+ */
+private val QuestionsSaver = Saver<List<PreparedQuestion>, String>(
+    save = { TestJson.encodeToString(it) },
+    restore = { encoded ->
+        runCatching { TestJson.decodeFromString<List<PreparedQuestion>>(encoded) }.getOrNull()
+    },
+)
+
+private val PhaseSaver = Saver<TestPhase, String>(
+    save = { it.name },
+    restore = { runCatching { TestPhase.valueOf(it) }.getOrNull() },
+)
+
+private fun remainingMillis(deadlineElapsed: Long, deadlineWall: Long, limit: Long): Long =
+    minOf(
+        deadlineElapsed - SystemClock.elapsedRealtime(),
+        deadlineWall - System.currentTimeMillis(),
+    ).coerceIn(0L, limit)
+
+/**
+ * Wall-clock and uptime deadlines are both kept. Uptime survives recreation,
+ * and the wall clock still works if the phone rebooted mid-test; taking the
+ * smaller remaining time also resists a clock moved backwards.
+ */
+private fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
 
 @Composable
 fun TestSessionScreen(
@@ -92,23 +139,40 @@ fun TestSessionScreen(
     val source = remember(kind, target, store.cefrLevel) {
         if (weekly) LingoLevels.weeklyQuestions(store.cefrLevel) else LingoLevels.examFor(target)
     }
-    val questions = remember(source) { LingoLevels.prepare(source) }
-    val answers = remember(questions) {
+    val questions = rememberSaveable(saver = QuestionsSaver) { LingoLevels.prepare(source) }
+    val answers = rememberSaveable(
+        saver = listSaver<SnapshotStateList<Int>, Int>(
+            save = { it.toList() },
+            restore = { it.toMutableStateList() },
+        ),
+    ) {
         mutableStateListOf<Int>().apply { repeat(questions.size) { add(-1) } }
     }
     var index by rememberSaveable { mutableIntStateOf(0) }
-    var phase by remember { mutableStateOf(TestPhase.ONGOING) }
-    var score by remember { mutableIntStateOf(0) }
-    var passed by remember { mutableStateOf(false) }
-    var reason by remember { mutableStateOf("") }
-    var recorded by remember { mutableStateOf(false) }
-    var showExit by remember { mutableStateOf(false) }
-    var showFinishHint by remember { mutableStateOf(false) }
-    var remaining by remember { mutableLongStateOf(minutes * 60L) }
+    var phase by rememberSaveable(stateSaver = PhaseSaver) { mutableStateOf(TestPhase.ONGOING) }
+    var score by rememberSaveable { mutableIntStateOf(0) }
+    var passed by rememberSaveable { mutableStateOf(false) }
+    var reason by rememberSaveable { mutableStateOf("") }
+    var recorded by rememberSaveable { mutableStateOf(false) }
+    var showExit by rememberSaveable { mutableStateOf(false) }
+    var showFinishHint by rememberSaveable { mutableStateOf(false) }
+    val limit = minutes * 60_000L
+    var deadlineElapsed by rememberSaveable {
+        mutableLongStateOf(SystemClock.elapsedRealtime() + limit)
+    }
+    var deadlineWall by rememberSaveable {
+        mutableLongStateOf(System.currentTimeMillis() + limit)
+    }
+    var remaining by rememberSaveable {
+        mutableLongStateOf((remainingMillis(deadlineElapsed, deadlineWall, limit) + 999L) / 1000L)
+    }
 
     LaunchedEffect(Unit) {
-        // Guard restored test state: after a process death the store has
-        // already consumed the attempt, so this screen must not reopen it.
+        // A finished test keeps its result screen through recreation. An
+        // ongoing level exam may resume only when the retained store still
+        // holds this exact attempt (rotation). After process death the store
+        // has settled the attempt, so the lock check closes the screen.
+        if (phase != TestPhase.ONGOING) return@LaunchedEffect
         if (weekly) {
             if (store.weeklyAttempted) {
                 onClose()
@@ -116,6 +180,7 @@ fun TestSessionScreen(
             }
             store.beginWeeklyTest()
         } else {
+            if (store.activeLevelExamTarget == target) return@LaunchedEffect
             if (!store.canAttemptLevel(target)) {
                 onClose()
                 return@LaunchedEffect
@@ -155,12 +220,19 @@ fun TestSessionScreen(
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, phase) {
+    val activity = LocalContext.current.findActivity()
+    DisposableEffect(lifecycleOwner, phase, activity) {
         if (phase != TestPhase.ONGOING) {
             onDispose { }
         } else {
             val observer = LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_STOP && phase == TestPhase.ONGOING) {
+                // Rotation stops the activity too, but it is not the learner
+                // leaving the app. Only a real backgrounding ends the attempt.
+                if (
+                    event == Lifecycle.Event.ON_STOP &&
+                    phase == TestPhase.ONGOING &&
+                    activity?.isChangingConfigurations != true
+                ) {
                     endAttempt("You left the app. This attempt has ended.")
                 }
             }
@@ -171,12 +243,10 @@ fun TestSessionScreen(
 
     LaunchedEffect(phase) {
         if (phase != TestPhase.ONGOING) return@LaunchedEffect
-        val started = SystemClock.elapsedRealtime()
-        val limit = minutes * 60L
         while (phase == TestPhase.ONGOING) {
-            val elapsed = (SystemClock.elapsedRealtime() - started) / 1000L
-            remaining = (limit - elapsed).coerceAtLeast(0L)
-            if (remaining == 0L) {
+            val left = remainingMillis(deadlineElapsed, deadlineWall, limit)
+            remaining = (left + 999L) / 1000L
+            if (left == 0L) {
                 complete(timeUp = true)
                 break
             }

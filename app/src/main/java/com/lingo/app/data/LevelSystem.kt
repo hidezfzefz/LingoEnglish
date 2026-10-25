@@ -1,5 +1,6 @@
 package com.lingo.app.data
 
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.temporal.WeekFields
 
@@ -48,6 +49,7 @@ data class LevelQuestion(
     val explanation: String = "",
 )
 
+@Serializable
 data class PreparedQuestion(
     val prompt: String,
     val options: List<String>,
