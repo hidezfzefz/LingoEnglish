@@ -384,6 +384,14 @@ class ProgressStore(context: Context) {
         prefs.edit().putInt("daily_goal", dailyGoal).apply()
     }
 
+    /** Keeps a creative response on this phone so leaving a lesson loses no work. */
+    fun creativeDraft(exerciseId: String): String =
+        prefs.getString("writing_$exerciseId", "").orEmpty()
+
+    fun saveCreativeDraft(exerciseId: String, text: String) {
+        prefs.edit().putString("writing_$exerciseId", text).apply()
+    }
+
     fun reset() {
         val goal = dailyGoal
         prefs.edit().clear().putInt("daily_goal", goal).apply()

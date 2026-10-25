@@ -62,7 +62,6 @@ fun LessonScreen(
 ) {
     var step by rememberSaveable(lesson.id) { mutableIntStateOf(0) }
     var selected by rememberSaveable(lesson.id) { mutableStateOf<Int?>(null) }
-    var response by rememberSaveable(lesson.id) { mutableStateOf("") }
     var checked by rememberSaveable(lesson.id) { mutableStateOf(false) }
     var correctCount by rememberSaveable(lesson.id) { mutableIntStateOf(0) }
     var complete by rememberSaveable(lesson.id) { mutableStateOf(false) }
@@ -71,6 +70,10 @@ fun LessonScreen(
     val totalSteps = lesson.stepCount
     val slideCount = lesson.slides.size
     val exercise = if (step >= slideCount) lesson.exercises.getOrNull(step - slideCount) else null
+    // Restore any saved writing when its exercise appears, and keep text per exercise.
+    var response by rememberSaveable(lesson.id, exercise?.id) {
+        mutableStateOf(if (exercise?.isCreative == true) store.creativeDraft(exercise.id) else "")
+    }
     val palette = LingoContent.unitFor(lesson)?.let { paletteFor(it.accent) }
         ?: paletteFor(com.lingo.app.data.Accent.GREEN)
 
@@ -181,7 +184,12 @@ fun LessonScreen(
                                 onSelect = { selected = it },
                                 onSpeak = speaker,
                                 text = response,
-                                onTextChange = { response = it },
+                                onTextChange = { updated ->
+                                    response = updated
+                                    if (currentExercise.isCreative) {
+                                        store.saveCreativeDraft(currentExercise.id, updated)
+                                    }
+                                },
                             )
                         }
                     }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keep local learning progress, but never back up Supabase auth tokens. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="com.lingo.app_preferences.xml" />
+</full-backup-content>

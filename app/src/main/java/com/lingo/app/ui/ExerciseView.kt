@@ -232,6 +232,12 @@ private fun CreativeResponse(
             color = Muted,
         )
     }
+    Spacer(Modifier.height(6.dp))
+    Text(
+        text = "Draft saved on this phone as you write.",
+        style = MaterialTheme.typography.labelSmall,
+        color = Muted,
+    )
 }
 
 @Composable

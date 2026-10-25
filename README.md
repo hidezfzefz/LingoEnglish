@@ -14,7 +14,7 @@ Install the latest APK from the
 Android 8.0 (API 26) or newer is required.
 
 ```bash
-adb install -r LingoEnglish-1.5.apk
+adb install -r LingoEnglish-1.6.apk
 ```
 
 The published APK is a sideload preview signed with the project's debug key.
@@ -41,7 +41,9 @@ keystore and keep it out of version control.
 - **Email/password accounts** with password recovery and a mandatory greeting
   gate until the learner signs in.
 - **Local-first progress**: XP, streaks, completed lessons, exam results, and
-  weekly scores are stored on the device.
+  weekly scores are stored on the device. Creative writing is saved as a draft
+  while the learner types, and account tokens are excluded from Android
+  backups.
 
 ## Creative learning
 
@@ -119,7 +121,7 @@ CI runs the same audit on every push and pull request. It verifies:
 
 - unique lesson and exercise IDs;
 - four options and a valid answer key for every scored question;
-- 12 questions and all four skills in every level exam;
+- 12 questions in every level exam, with exactly three per skill;
 - 300 randomized weekly selections per level, with 10 unique,
   skill-balanced questions in every selection;
 - shuffling never changes the correct answer;
