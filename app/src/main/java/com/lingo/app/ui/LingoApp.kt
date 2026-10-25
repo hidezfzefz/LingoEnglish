@@ -559,7 +559,7 @@ private fun SettingsSheet(
                     .padding(vertical = 6.dp),
             )
             Text(
-                "This clears lessons, XP, streak, saved words, level progress, and weekly scores on this phone. Your call account and friend code stay with your login.",
+                "This clears lessons, XP, streak, saved words, level progress, weekly scores, and writing drafts on this phone. Your call account and friend code stay with your login.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Muted,
             )
