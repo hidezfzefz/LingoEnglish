@@ -1,8 +1,13 @@
 package com.lingo.app.ui
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.speech.tts.TextToSpeech
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,27 +20,37 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,10 +65,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.lingo.app.BuildConfig
 import com.lingo.app.data.CefrLevel
 import com.lingo.app.data.CallPhase
@@ -61,8 +83,10 @@ import com.lingo.app.data.CallStore
 import com.lingo.app.data.LingoContent
 import com.lingo.app.data.PracticeMode
 import com.lingo.app.data.ProgressStore
+import com.lingo.app.data.ReminderCopy
 import com.lingo.app.data.StickerKind
 import com.lingo.app.data.TestKind
+import com.lingo.app.reminders.PracticeReminder
 import java.util.Locale
 
 enum class Tab(val label: String, val sticker: StickerKind) {
@@ -79,6 +103,8 @@ fun LingoApp(
     callStore: CallStore,
     recoveryIntent: Intent? = null,
     onRecoveryIntentHandled: () -> Unit = {},
+    openPracticeRequest: Boolean = false,
+    onOpenPracticeHandled: () -> Unit = {},
 ) {
     val voice = rememberSpeaker()
     val speaker: (String) -> Unit = voice.speak
@@ -104,6 +130,24 @@ fun LingoApp(
     }
     val testTarget = CefrLevel.fromKey(testTargetName)
 
+    fun clearOverlays() {
+        lessonId = null
+        quizModeName = null
+        testKindName = null
+        testTargetName = null
+        showLevelPath = false
+        showFlashcards = false
+        showWordBank = false
+        showRoleplay = false
+        showSentenceTiles = false
+        showSettings = false
+    }
+
+    fun openTab(target: Tab) {
+        clearOverlays()
+        tabName = target.name
+    }
+
     // The account gate is mandatory in a configured build. While the saved
     // session is still being restored we show a branded loading state instead
     // of flashing Home or the sign-in form.
@@ -118,35 +162,26 @@ fun LingoApp(
         if (!callStore.handlePasswordResetLink(intent)) return@LaunchedEffect
         // A recovery link should always land on the account screen, even if the
         // app was last left inside a lesson, test, or another tab.
-        tabName = Tab.COMMUNITY.name
-        lessonId = null
-        quizModeName = null
-        testKindName = null
-        testTargetName = null
-        showLevelPath = false
-        showFlashcards = false
-        showWordBank = false
-        showRoleplay = false
-        showSentenceTiles = false
-        showSettings = false
+        openTab(Tab.COMMUNITY)
         onRecoveryIntentHandled()
+    }
+
+    LaunchedEffect(openPracticeRequest, showEntryGate, callStore.authReady, callStore.signedIn) {
+        if (!openPracticeRequest) return@LaunchedEffect
+        // Wait for the account gate. The request stays pending until the learner
+        // is signed in, so a reminder tap still lands on Practice afterwards.
+        if (showEntryGate || !callStore.authReady || callStore.passwordRecoveryActive) {
+            return@LaunchedEffect
+        }
+        openTab(Tab.PRACTICE)
+        onOpenPracticeHandled()
     }
 
     LaunchedEffect(showEntryGate, callStore.authReady) {
         // When a confirmed signed-out learner reaches the gate, leave any stale
         // lesson, test, sheet, or tab behind so a later sign-in starts cleanly.
         if (!showEntryGate || !callStore.authReady) return@LaunchedEffect
-        tabName = Tab.HOME.name
-        lessonId = null
-        quizModeName = null
-        testKindName = null
-        testTargetName = null
-        showLevelPath = false
-        showFlashcards = false
-        showWordBank = false
-        showRoleplay = false
-        showSentenceTiles = false
-        showSettings = false
+        openTab(Tab.HOME)
     }
 
     fun startWeekly() {
@@ -317,6 +352,8 @@ fun LingoApp(
                             onOpenFlashcards = { showFlashcards = true },
                             onOpenWordBank = { showWordBank = true },
                             onOpenSettings = { showSettings = true },
+                            onStartWeekly = { startWeekly() },
+                            onStartLevelExam = { target -> startLevelExam(target) },
                         )
 
                         Tab.LEARN -> LearnScreen(
@@ -367,6 +404,9 @@ private fun LingoBottomBar(
     selected: Tab,
     onSelect: (Tab) -> Unit,
 ) {
+    // Keep five labels on one line inside the narrow tab cells. Content still
+    // respects the user's font scale; only the tiny nav captions compact.
+    val compactLabels = LocalDensity.current.fontScale >= 1.5f
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -393,7 +433,11 @@ private fun LingoBottomBar(
                             .weight(1f)
                             .clip(RoundedCornerShape(20.dp))
                             .background(if (active) Mint else Color.Transparent)
-                            .clickable { onSelect(item) }
+                            .selectable(
+                                selected = active,
+                                role = Role.Tab,
+                                onClick = { onSelect(item) },
+                            )
                             .padding(vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
@@ -406,10 +450,14 @@ private fun LingoBottomBar(
                         Text(
                             text = item.label,
                             style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = 9.5.sp,
+                                fontSize = if (compactLabels) 8.sp else 9.5.sp,
+                                lineHeight = if (compactLabels) 10.sp else 12.sp,
                                 letterSpacing = 0.2.sp,
                             ),
                             color = if (active) Forest else Muted,
+                            maxLines = 1,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -464,7 +512,70 @@ private fun SettingsSheet(
     onReset: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val context = LocalContext.current
     var confirmReset by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+    var notificationsAllowed by remember {
+        mutableStateOf(PracticeReminder.notificationsAllowed(context))
+    }
+    var permissionDenied by remember { mutableStateOf(false) }
+    var awaitingSettings by remember { mutableStateOf(false) }
+
+    fun enableRemindersNow() {
+        store.updateRemindersEnabled(true)
+        PracticeReminder.scheduleNext(context, store)
+        permissionDenied = false
+    }
+
+    fun disableReminders() {
+        store.updateRemindersEnabled(false)
+        PracticeReminder.cancel(context)
+        permissionDenied = false
+        awaitingSettings = false
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        notificationsAllowed = PracticeReminder.notificationsAllowed(context)
+        if (granted && notificationsAllowed) {
+            enableRemindersNow()
+        } else {
+            store.updateRemindersEnabled(false)
+            PracticeReminder.cancel(context)
+            permissionDenied = true
+        }
+    }
+
+    fun requestEnableReminders() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            return
+        }
+        if (!PracticeReminder.notificationsAllowed(context)) {
+            notificationsAllowed = false
+            permissionDenied = true
+            return
+        }
+        notificationsAllowed = true
+        enableRemindersNow()
+    }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        val allowed = PracticeReminder.notificationsAllowed(context)
+        notificationsAllowed = allowed
+        if (awaitingSettings) {
+            awaitingSettings = false
+            if (allowed) enableRemindersNow() else permissionDenied = true
+        }
+    }
+
+    val showBlocked = !notificationsAllowed && (permissionDenied || store.remindersEnabled)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -483,11 +594,16 @@ private fun SettingsSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
                 .navigationBarsPadding()
                 .padding(bottom = 24.dp),
         ) {
-            Text("Settings", style = MaterialTheme.typography.headlineMedium)
+            Text(
+                "Settings",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.semantics { heading() },
+            )
             Spacer(Modifier.height(4.dp))
             Text(
                 "Make Lingo fit your day.",
@@ -495,7 +611,12 @@ private fun SettingsSheet(
                 color = Muted,
             )
             Spacer(Modifier.height(26.dp))
-            Text("DAILY GOAL", style = MaterialTheme.typography.labelSmall, color = Muted)
+            Text(
+                "DAILY GOAL",
+                style = MaterialTheme.typography.labelSmall,
+                color = Muted,
+                modifier = Modifier.semantics { heading() },
+            )
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(20, 30, 40, 60, 80).forEach { goal ->
@@ -503,6 +624,7 @@ private fun SettingsSheet(
                     Box(
                         modifier = Modifier
                             .weight(1f)
+                            .heightIn(min = 48.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .background(if (active) Forest else Cream)
                             .border(1.dp, if (active) Forest else Line, RoundedCornerShape(14.dp))
@@ -524,6 +646,149 @@ private fun SettingsSheet(
                 style = MaterialTheme.typography.bodySmall,
                 color = Muted,
             )
+            Spacer(Modifier.height(26.dp))
+            Text(
+                "REMINDERS",
+                style = MaterialTheme.typography.labelSmall,
+                color = Muted,
+                modifier = Modifier.semantics { heading() },
+            )
+            Spacer(Modifier.height(10.dp))
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = Cream,
+                border = BorderStroke(1.dp, Line),
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(
+                                value = store.remindersEnabled && notificationsAllowed,
+                                role = Role.Switch,
+                                onValueChange = { wanted ->
+                                    if (wanted) requestEnableReminders() else disableReminders()
+                                },
+                            )
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Sticker(kind = StickerKind.BELL, size = 36.dp, elevated = false)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Daily practice reminder",
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            Text(
+                                text = if (store.remindersEnabled) {
+                                    "Every day at ${ReminderCopy.timeLabel(store.reminderHour, store.reminderMinute)}"
+                                } else {
+                                    "Off"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Muted,
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Switch(
+                            checked = store.remindersEnabled && notificationsAllowed,
+                            onCheckedChange = null,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Forest,
+                                checkedTrackColor = Lime,
+                                checkedBorderColor = Forest,
+                                uncheckedThumbColor = Paper,
+                                uncheckedTrackColor = Sand,
+                                uncheckedBorderColor = Line,
+                            ),
+                        )
+                    }
+                    if (store.remindersEnabled) {
+                        Box(
+                            Modifier
+                                .padding(start = 64.dp, end = 16.dp)
+                                .height(1.dp)
+                                .fillMaxWidth()
+                                .background(Line.copy(alpha = 0.7f)),
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    onClickLabel = "Change reminder time",
+                                ) { showTimePicker = true }
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Sticker(
+                                kind = StickerKind.HOURGLASS,
+                                size = 30.dp,
+                                elevated = false,
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                "Reminder time",
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                ReminderCopy.timeLabel(store.reminderHour, store.reminderMinute),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = Forest,
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Change",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = Muted,
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "A gentle nudge on this phone. No email, and no reminder on days you've already practised.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Muted,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+            if (showBlocked) {
+                Spacer(Modifier.height(10.dp))
+                Surface(
+                    shape = RoundedCornerShape(18.dp),
+                    color = Peach,
+                ) {
+                    Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                        Text(
+                            "Notifications are off for Lingo",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = CoralDeep,
+                        )
+                        Spacer(Modifier.height(3.dp))
+                        Text(
+                            "Allow notifications in system settings, then come back. Reminders stay off until you do.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = CoralDeep,
+                        )
+                        TextButton(
+                            onClick = {
+                                awaitingSettings = true
+                                PracticeReminder.openNotificationSettings(context)
+                            },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                            contentPadding = PaddingValues(horizontal = 0.dp),
+                        ) {
+                            Text(
+                                "Open notification settings",
+                                color = CoralDeep,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
+            }
             Spacer(Modifier.height(24.dp))
             Row(
                 modifier = Modifier
@@ -550,12 +815,14 @@ private fun SettingsSheet(
                 style = MaterialTheme.typography.labelLarge,
                 color = Danger,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable { confirmReset = true }
-                    .padding(vertical = 6.dp),
+                    .padding(vertical = 14.dp),
             )
             Text(
-                "This clears lessons, XP, streak, saved words, level progress, weekly scores, and writing drafts on this phone. Your call account and friend code stay with your login.",
+                "This clears lessons, XP, streak, saved words, level progress, weekly scores, writing drafts, and turns reminders off. Your call account and friend code stay with your login.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Muted,
             )
@@ -570,6 +837,21 @@ private fun SettingsSheet(
         }
     }
 
+    if (showTimePicker) {
+        ReminderTimeDialog(
+            initialHour = store.reminderHour,
+            initialMinute = store.reminderMinute,
+            onDismiss = { showTimePicker = false },
+            onConfirm = { hour, minute ->
+                store.updateReminderTime(hour, minute)
+                if (store.remindersEnabled) {
+                    PracticeReminder.scheduleNext(context, store)
+                }
+                showTimePicker = false
+            },
+        )
+    }
+
     if (confirmReset) {
         AlertDialog(
             onDismissRequest = { confirmReset = false },
@@ -577,12 +859,13 @@ private fun SettingsSheet(
             titleContentColor = Ink,
             textContentColor = InkSoft,
             title = { Text("Start from scratch?", style = MaterialTheme.typography.headlineSmall) },
-            text = { Text("Lessons, XP, streak, saved words, level progress, and weekly scores will be cleared. Your call account and friend code stay with your login. This can't be undone.") },
+            text = { Text("Lessons, XP, streak, saved words, level progress, weekly scores, and writing drafts will be cleared. Reminders turn off. Your call account and friend code stay with your login. This can't be undone.") },
             confirmButton = {
                 TextButton(
                     onClick = {
                         confirmReset = false
                         store.reset()
+                        PracticeReminder.cancel(context)
                         onReset()
                     },
                 ) {
@@ -596,4 +879,38 @@ private fun SettingsSheet(
             },
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ReminderTimeDialog(
+    initialHour: Int,
+    initialMinute: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (Int, Int) -> Unit,
+) {
+    val pickerState = rememberTimePickerState(
+        initialHour = initialHour,
+        initialMinute = initialMinute,
+        is24Hour = true,
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Paper,
+        titleContentColor = Ink,
+        title = { Text("Reminder time", style = MaterialTheme.typography.headlineSmall) },
+        text = {
+            TimePicker(state = pickerState)
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(pickerState.hour, pickerState.minute) }) {
+                Text("Set time", color = Forest, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = Muted)
+            }
+        },
+    )
 }

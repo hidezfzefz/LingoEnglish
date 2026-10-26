@@ -15,10 +15,12 @@ import com.lingo.app.ui.LingoTheme
 
 class MainActivity : ComponentActivity() {
     private var recoveryIntent by mutableStateOf<Intent?>(null)
+    private var openPracticeRequest by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         recoveryIntent = intent
+        openPracticeRequest = intent.wantsPractice()
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
@@ -39,6 +41,15 @@ class MainActivity : ComponentActivity() {
                             setIntent(Intent(this, MainActivity::class.java))
                         }
                     },
+                    openPracticeRequest = openPracticeRequest,
+                    onOpenPracticeHandled = {
+                        openPracticeRequest = false
+                        // Strip the one-shot extra so rotation or a task restore
+                        // cannot send the learner to Practice a second time.
+                        if (intent.wantsPractice()) {
+                            setIntent(Intent(this, MainActivity::class.java))
+                        }
+                    },
                 )
             }
         }
@@ -48,5 +59,13 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         recoveryIntent = intent
+        openPracticeRequest = intent.wantsPractice()
+    }
+
+    private fun Intent?.wantsPractice(): Boolean =
+        this?.getBooleanExtra(EXTRA_OPEN_PRACTICE, false) == true
+
+    companion object {
+        const val EXTRA_OPEN_PRACTICE = "com.lingo.app.extra.OPEN_PRACTICE"
     }
 }

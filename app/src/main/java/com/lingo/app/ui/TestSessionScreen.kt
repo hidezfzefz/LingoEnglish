@@ -488,7 +488,7 @@ private fun TestTopBar(
     ) {
         Box(
             modifier = Modifier
-                .size(38.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(Paper)
                 .border(1.dp, Line, CircleShape)

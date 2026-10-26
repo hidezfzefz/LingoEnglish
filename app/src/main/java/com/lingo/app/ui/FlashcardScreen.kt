@@ -105,7 +105,7 @@ fun FlashcardScreen(
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(Paper)
                     .clickable(onClick = onClose),
@@ -122,16 +122,20 @@ fun FlashcardScreen(
                     color = Muted,
                 )
             }
-            Icon(
-                imageVector = Icons.Filled.Star,
-                contentDescription = if (word.id in store.savedWords) "Remove saved word" else "Save word",
-                tint = if (word.id in store.savedWords) Gold else Line,
+            Box(
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .clickable { store.toggleSaved(word.id) }
-                    .padding(3.dp),
-            )
+                    .clickable { store.toggleSaved(word.id) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = if (word.id in store.savedWords) "Remove saved word" else "Save word",
+                    tint = if (word.id in store.savedWords) Gold else Line,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
         }
 
         ProgressLine(
@@ -371,16 +375,17 @@ private fun FlipCard(
                         Box(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
-                                .padding(22.dp),
+                                .padding(22.dp)
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .clickable(onClick = onToggleSave),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Star,
                                 contentDescription = if (saved) "Remove saved word" else "Save word",
                                 tint = if (saved) Gold else Cream.copy(alpha = 0.35f),
-                                modifier = Modifier
-                                    .size(26.dp)
-                                    .clip(CircleShape)
-                                    .clickable(onClick = onToggleSave),
+                                modifier = Modifier.size(26.dp),
                             )
                         }
                     }

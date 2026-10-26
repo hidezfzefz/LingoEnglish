@@ -29,8 +29,8 @@ android {
         applicationId = "com.lingo.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 8
-        versionName = "1.7"
+        versionCode = 9
+        versionName = "1.8"
 
         buildConfigField("String", "SUPABASE_URL", quoted(configValue("LINGO_SUPABASE_URL")))
         buildConfigField("String", "SUPABASE_ANON_KEY", quoted(configValue("LINGO_SUPABASE_ANON_KEY")))
@@ -73,6 +73,7 @@ dependencies {
     implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.core:core-ktx:1.19.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.4")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")

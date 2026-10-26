@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,18 +31,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingo.app.data.CefrLevel
 import com.lingo.app.data.LingoContent
 import com.lingo.app.data.Lesson
+import com.lingo.app.data.NextStep
+import com.lingo.app.data.NextStepKind
+import com.lingo.app.data.NextStepPlanner
 import com.lingo.app.data.PracticeMode
 import com.lingo.app.data.ProgressStore
 import com.lingo.app.data.StickerKind
 import java.time.LocalTime
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(
     store: ProgressStore,
@@ -52,10 +61,21 @@ fun HomeScreen(
     onOpenFlashcards: () -> Unit,
     onOpenWordBank: () -> Unit,
     onOpenSettings: () -> Unit,
+    onStartWeekly: () -> Unit,
+    onStartLevelExam: (CefrLevel) -> Unit,
 ) {
     val next = LingoContent.nextLesson(store.completedLessons)
     val allComplete = LingoContent.lessons.all { it.id in store.completedLessons }
     val word = LingoContent.wordOfTheDay()
+    val examTarget = store.nextCefrLevel?.takeIf { store.canAttemptLevel(it) }
+    val recommendation = NextStepPlanner.recommend(
+        weeklyDone = store.weeklyAttempted,
+        examTarget = examTarget,
+        examReady = examTarget != null,
+        nextLesson = if (allComplete) null else next,
+        allLessonsComplete = allComplete,
+        goalComplete = store.todayXp >= store.dailyGoal,
+    )?.takeIf { it.kind != NextStepKind.NEXT_LESSON }
     val greeting = when (LocalTime.now().hour) {
         in 0..11 -> "Good morning."
         in 12..17 -> "Good afternoon."
@@ -114,7 +134,10 @@ fun HomeScreen(
                     color = Muted,
                 )
                 Spacer(Modifier.height(16.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     StatPill(
                         sticker = StickerKind.FLAME,
                         text = if (store.streak > 0) "${store.streak}-day streak" else "Start a streak",
@@ -137,6 +160,24 @@ fun HomeScreen(
                     if (allComplete) onOpenPractice() else onOpenLesson(next)
                 },
             )
+        }
+
+        recommendation?.let { step ->
+            item {
+                NextStepCard(
+                    step = step,
+                    onAction = {
+                        when (step.kind) {
+                            NextStepKind.WEEKLY_TEST -> onStartWeekly()
+                            NextStepKind.LEVEL_EXAM -> step.targetLevel?.let(onStartLevelExam)
+                            NextStepKind.FREE_PRACTICE -> onOpenPractice()
+                            NextStepKind.NEXT_LESSON -> step.lessonId
+                                ?.let(LingoContent::lessonById)
+                                ?.let(onOpenLesson)
+                        }
+                    },
+                )
+            }
         }
 
         item {
@@ -335,6 +376,66 @@ private fun DailyHeroCard(
                     trailingArrow = true,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun NextStepCard(
+    step: NextStep,
+    onAction: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(26.dp))
+            .clickable(
+                onClickLabel = step.action,
+                role = Role.Button,
+                onClick = onAction,
+            ),
+        shape = RoundedCornerShape(26.dp),
+        color = Mint,
+        border = BorderStroke(1.dp, MintDeep),
+    ) {
+        Row(
+            modifier = Modifier.padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Sticker(kind = step.sticker, size = 46.dp)
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Tag(
+                    text = step.eyebrow,
+                    background = Paper,
+                    color = Forest,
+                )
+                Spacer(Modifier.height(7.dp))
+                Text(
+                    text = step.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Ink,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = step.detail,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = InkSoft,
+                )
+                Spacer(Modifier.height(9.dp))
+                Text(
+                    text = step.action,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = Forest,
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = "→",
+                style = MaterialTheme.typography.titleLarge,
+                color = Forest,
+                modifier = Modifier.clearAndSetSemantics {},
+            )
         }
     }
 }

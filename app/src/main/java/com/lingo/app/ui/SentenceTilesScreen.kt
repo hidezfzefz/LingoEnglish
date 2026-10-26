@@ -642,7 +642,7 @@ private fun WordTilesTopBar(
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(Paper)
                 .clickable(onClick = onBack),

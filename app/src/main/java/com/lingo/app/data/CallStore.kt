@@ -297,6 +297,7 @@ class CallStore(
     }
 
     fun completePasswordReset(newPassword: String, confirmPassword: String) {
+        if (passwordResetBusy) return
         val token = recoveryAccessToken
         if (token.isNullOrBlank()) {
             resetPasswordError("This reset link is invalid or expired. Request a new one.")
@@ -414,6 +415,7 @@ class CallStore(
 
     fun signIn(email: String, password: String) {
         val client = supabase ?: return
+        if (authBusy) return
         val cleanEmail = email.trim()
         if (cleanEmail.isBlank() || password.isBlank()) {
             authError = "Enter your email and password."
@@ -438,6 +440,7 @@ class CallStore(
 
     fun signUp(name: String, email: String, password: String) {
         val client = supabase ?: return
+        if (authBusy) return
         val cleanName = name.trim()
         val cleanEmail = email.trim()
         if (cleanName.length < 2) {
@@ -632,6 +635,7 @@ class CallStore(
 
     fun startFriendCall(rawCode: String) {
         val client = supabase ?: return
+        if (actionBusy) return
         if (!signedIn) {
             actionError = "Sign in to call a friend."
             return

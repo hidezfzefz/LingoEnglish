@@ -237,13 +237,20 @@ private fun SearchField(
             if (query.isNotEmpty()) {
                 Box(
                     modifier = Modifier
-                        .size(22.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
-                        .background(Sand)
                         .clickable { onQueryChange("") },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("×", fontSize = 13.sp, color = Muted)
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(Sand),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("×", fontSize = 13.sp, color = Muted)
+                    }
                 }
             }
         }
@@ -324,16 +331,20 @@ private fun WordBankRow(
                     background = Cream,
                 )
                 Spacer(Modifier.width(6.dp))
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = if (saved) "Remove saved word" else "Save word",
-                    tint = if (saved) Gold else Line,
+                Box(
                     modifier = Modifier
-                        .size(26.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
-                        .clickable(onClick = onToggleSave)
-                        .padding(2.dp),
-                )
+                        .clickable(onClick = onToggleSave),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = if (saved) "Remove saved word" else "Save word",
+                        tint = if (saved) Gold else Line,
+                        modifier = Modifier.size(26.dp),
+                    )
+                }
                 Spacer(Modifier.width(4.dp))
                 Box(
                     modifier = Modifier

@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -313,9 +314,10 @@ private fun CallHeader(
             style = MaterialTheme.typography.labelMedium,
             color = if (phase == CallPhase.SUMMARY || phase == CallPhase.ERROR) Lime else Cream.copy(alpha = 0.72f),
             modifier = Modifier
+                .heightIn(min = 48.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .clickable(onClick = onEnd)
-                .padding(horizontal = 8.dp, vertical = 8.dp),
+                .padding(horizontal = 8.dp, vertical = 14.dp),
         )
     }
 }
@@ -787,9 +789,10 @@ private fun SummaryStage(
             style = MaterialTheme.typography.labelMedium,
             color = Cream.copy(alpha = 0.7f),
             modifier = Modifier
+                .heightIn(min = 48.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .clickable(onClick = onDone)
-                .padding(horizontal = 18.dp, vertical = 10.dp),
+                .padding(horizontal = 18.dp, vertical = 14.dp),
         )
     }
 }
@@ -891,14 +894,18 @@ private fun ReactionTray(onReaction: (CallReaction) -> Unit) {
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
         CallReaction.entries.forEach { reaction ->
-            Text(
-                text = reaction.emoji,
-                fontSize = 25.sp,
+            Box(
                 modifier = Modifier
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .clickable { onReaction(reaction) }
-                    .padding(horizontal = 7.dp, vertical = 5.dp),
-            )
+                    .clickable { onReaction(reaction) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = reaction.emoji,
+                    fontSize = 25.sp,
+                )
+            }
         }
     }
 }
@@ -978,15 +985,19 @@ private fun StarRating(
     Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
         (1..5).forEach { star ->
             val active = star <= selected
-            Text(
-                if (active) "★" else "☆",
-                fontSize = 32.sp,
-                color = if (active) Lime else Cream.copy(alpha = 0.42f),
+            Box(
                 modifier = Modifier
+                    .size(48.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .clickable { if (selected == 0) onSelect(star) }
-                    .padding(2.dp),
-            )
+                    .clickable { if (selected == 0) onSelect(star) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = if (active) "★" else "☆",
+                    fontSize = 32.sp,
+                    color = if (active) Lime else Cream.copy(alpha = 0.42f),
+                )
+            }
         }
     }
 }
@@ -1014,6 +1025,7 @@ private fun ReportDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .heightIn(min = 48.dp)
                             .clip(RoundedCornerShape(10.dp))
                             .background(if (selected == reason) Mint else Color.Transparent)
                             .clickable { selected = reason }

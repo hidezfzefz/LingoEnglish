@@ -205,9 +205,10 @@ fun CircleStickerButton(
 ) {
     Box(
         modifier = modifier
-            .size(size)
+            .size(if (size < 48.dp) 48.dp else size)
             .clip(CircleShape)
             .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
         Sticker(
             kind = kind,

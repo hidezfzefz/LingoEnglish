@@ -56,6 +56,12 @@ class ProgressStore(context: Context) {
         private set
     var dailyGoal by mutableIntStateOf(prefs.getInt("daily_goal", 40))
         private set
+    var remindersEnabled by mutableStateOf(prefs.getBoolean("reminder_enabled", false))
+        private set
+    var reminderHour by mutableIntStateOf(prefs.getInt("reminder_hour", 19))
+        private set
+    var reminderMinute by mutableIntStateOf(prefs.getInt("reminder_minute", 0))
+        private set
     var completedLessons by mutableStateOf(prefs.getStringSet("completed_lessons", emptySet())?.toSet() ?: emptySet())
         private set
     var completedRoleplays by mutableStateOf(prefs.getStringSet("completed_roleplays", emptySet())?.toSet() ?: emptySet())
@@ -384,6 +390,24 @@ class ProgressStore(context: Context) {
         prefs.edit().putInt("daily_goal", dailyGoal).apply()
     }
 
+    fun updateRemindersEnabled(enabled: Boolean) {
+        remindersEnabled = enabled
+        prefs.edit().putBoolean("reminder_enabled", enabled).apply()
+    }
+
+    fun updateReminderTime(hour: Int, minute: Int) {
+        reminderHour = hour.coerceIn(0, 23)
+        reminderMinute = minute.coerceIn(0, 59)
+        prefs.edit()
+            .putInt("reminder_hour", reminderHour)
+            .putInt("reminder_minute", reminderMinute)
+            .apply()
+    }
+
+    /** True once any learning has been recorded today, whichever screen did it. */
+    val practicedToday: Boolean
+        get() = prefs.getString("last_study", null) == dateKey()
+
     /** Keeps a creative response on this phone so leaving a lesson loses no work. */
     fun creativeDraft(exerciseId: String): String =
         prefs.getString("writing_$exerciseId", "").orEmpty()
@@ -398,6 +422,9 @@ class ProgressStore(context: Context) {
         totalXp = 0
         streak = 0
         bestStreak = 0
+        remindersEnabled = false
+        reminderHour = 19
+        reminderMinute = 0
         completedLessons = emptySet()
         completedRoleplays = emptySet()
         solvedSentences = emptySet()

@@ -14,16 +14,37 @@ Install the latest APK from the
 Android 8.0 (API 26) or newer is required.
 
 ```bash
-adb install -r LingoEnglish-1.7.apk
+adb install -r LingoEnglish-1.8.apk
 ```
 
 The published APK is a sideload preview signed with the project's debug key.
 Keep that in mind if you plan to publish on Google Play: use your own release
 keystore and keep it out of version control.
 
+## What's new in 1.8
+
+- Opt-in daily practice reminders with an in-app time picker and clear
+  guidance if Android blocks notifications.
+- A conditional “recommended next” card on Home for weekly tests, level exams,
+  and free practice.
+- WCAG AA secondary text, labelled icon controls, 48 dp touch targets, larger
+  TimePicker-ready settings, and a scrollable settings sheet.
+- Duplicate-submit guards for sign-in, sign-up, password reset, and friend
+  calls, plus rescheduling after reboot, clock changes, and app updates.
+- Version 1.8 (versionCode 9) installs directly over 1.7 without clearing
+  local progress.
+
 ## What is inside
 
 - **A complete CEFR path** from A1 to TOP, with XP and active-day gates.
+- **Opt-in practice reminders**: choose a daily time in Settings and get one
+  local notification on this phone. Reminders skip days you have already
+  practised, survive reboots and app updates, and never send your data to a
+  server. Android 13+ asks for notification permission only when you turn them
+  on.
+- **A clearer next step on Home**: when a weekly test is due, a level exam is
+  ready, or the path is complete, Home shows one recommendation card. It stays
+  out of the way once the daily goal is met.
 - **6 units, 20 lessons, 45 teaching slides, and 80 exercises** covering
   everyday English, travel, work, culture, and creative communication.
 - **20 guided “Create” tasks** — one per lesson. Learners invent, explain,
@@ -47,6 +68,9 @@ keystore and keep it out of version control.
   weekly scores are stored on the device. Creative writing is saved as a draft
   while the learner types, and account tokens are excluded from Android
   backups.
+- **Accessibility and reliability**: secondary text meets WCAG AA contrast,
+  icon-only controls have labels and 48 dp touch targets, sign-in and call
+  actions cannot double-submit, and every network action keeps its retry path.
 
 ## Creative learning
 
@@ -117,6 +141,13 @@ Run the headless content audit with:
 
 ```bash
 ./gradlew :app:testDebugUnitTest --tests com.lingo.app.ContentAuditTest --console=plain
+./gradlew --stop
+```
+
+Run the reminder and Home-recommendation tests with:
+
+```bash
+./gradlew :app:testDebugUnitTest --tests 'com.lingo.app.ReminderScheduleTest' --tests 'com.lingo.app.NextStepTest' --console=plain
 ./gradlew --stop
 ```
 

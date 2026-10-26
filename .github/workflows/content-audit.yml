@@ -22,10 +22,9 @@ jobs:
         with:
           packages: "platform-tools platforms;android-37.0 build-tools;37.0.0"
       - uses: gradle/actions/setup-gradle@v6
-      - name: Run content audit
+      - name: Run unit tests
         run: >-
           ./gradlew :app:testDebugUnitTest
-          --tests com.lingo.app.ContentAuditTest
           --no-daemon --max-workers=2 --console=plain
       - name: Run Android Lint
         run: >-

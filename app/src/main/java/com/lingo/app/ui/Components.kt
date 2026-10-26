@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -51,6 +52,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -175,18 +178,25 @@ fun SpeakButton(
 ) {
     Box(
         modifier = modifier
-            .size(size)
+            .size(if (size < 48.dp) 48.dp else size)
             .clip(CircleShape)
-            .background(background)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.VolumeUp,
-            contentDescription = "Play audio",
-            tint = tint,
-            modifier = Modifier.size(size * 0.46f),
-        )
+        Box(
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(background),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.VolumeUp,
+                contentDescription = "Play audio",
+                tint = tint,
+                modifier = Modifier.size(size * 0.46f),
+            )
+        }
     }
 }
 
@@ -277,17 +287,26 @@ fun SectionHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.semantics { heading() },
+        )
         if (action != null && onAction != null) {
-            Text(
-                text = action,
-                style = MaterialTheme.typography.labelLarge,
-                color = Emerald,
+            Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
+                    .heightIn(min = 48.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable(onClick = onAction)
-                    .padding(horizontal = 6.dp, vertical = 4.dp),
-            )
+                    .padding(horizontal = 8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = action,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = Emerald,
+                )
+            }
         }
     }
 }
@@ -348,7 +367,7 @@ fun BackHeader(
     ) {
         Box(
             modifier = Modifier
-                .size(42.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(Paper)
                 .border(1.dp, Line, CircleShape)
@@ -403,16 +422,20 @@ fun WordOfTheDayCard(
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Filled.Star,
-                        contentDescription = if (saved) "Remove from saved words" else "Save word",
-                        tint = if (saved) Gold else Line,
+                    Box(
                         modifier = Modifier
-                            .size(24.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
-                            .clickable(onClick = onToggleSave)
-                            .padding(2.dp),
-                    )
+                            .clickable(onClick = onToggleSave),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = if (saved) "Remove from saved words" else "Save word",
+                            tint = if (saved) Gold else Line,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
                     Spacer(Modifier.width(4.dp))
                     SpeakButton(onClick = onSpeak, size = 36.dp)
                 }
