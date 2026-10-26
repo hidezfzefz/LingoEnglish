@@ -17,6 +17,17 @@ Android 8.0 (API 26) or newer is required.
 adb install -r LingoEnglish-1.8.apk
 ```
 
+Each release publishes `LingoEnglish-1.8.apk` and
+`LingoEnglish-1.8.apk.sha256`. Verify the download before installing:
+
+```bash
+sha256sum -c LingoEnglish-1.8.apk.sha256
+```
+
+The v1.8 APK SHA-256 is
+`0394199900e79bf2ebdf744c72725bf0334a8be73efde7235a31eac89d7b39b7`
+(72,948,079 bytes).
+
 The published APK is a sideload preview signed with the project's debug key.
 Keep that in mind if you plan to publish on Google Play: use your own release
 keystore and keep it out of version control.
@@ -128,6 +139,30 @@ See [BUILDING.md](BUILDING.md) for the low-resource Gradle settings,
 password recovery, LiveKit, and SMTP setup, and
 [SECURITY-REVIEW.md](SECURITY-REVIEW.md) for the v1.8 security review.
 
+## Release and rollback
+
+1. Confirm `versionName` and `versionCode` in `app/build.gradle.kts`.
+2. Run the unit tests and lint, then build the release APK using the command
+   above.
+3. Record `sha256sum app/build/outputs/apk/release/app-release.apk` and install
+   the APK over the previous build with `adb install -r` to prove app data
+   survives.
+4. Commit the source, tag `vX.Y`, and publish a GitHub Release with the APK and
+   its `.sha256` file.
+5. Roll back by installing the previous release APK over the current one with
+   `adb install -r`. Do not uninstall first: uninstalling erases local progress.
+   A downgrade is only safe when the old version accepts the current local data;
+   otherwise restore a device backup.
+
+Release builds use the project debug key for v1.8 so existing installs can
+update in place. That is an accepted sideload risk, documented as A-01 in
+[SECURITY-REVIEW.md](SECURITY-REVIEW.md); use a dedicated release keystore
+before any store distribution.
+
+The v1.8 launch evidence is in [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md),
+[TEST-PLAN.md](TEST-PLAN.md), and [TEST-REPORT.md](TEST-REPORT.md). Data handling
+is described in [PRIVACY.md](PRIVACY.md).
+
 ## Project layout
 
 ```text
@@ -165,7 +200,15 @@ CI runs the same audit on every push and pull request. It verifies:
 - a word target, success criteria, and model answer for every creative task.
 
 On-device smoke tests cover the login gate, password recovery, lessons,
-creative writing, weekly tests, live calls, and data-preserving upgrades.
+creative writing, weekly tests, live calls, and data-preserving upgrades. The
+full v1.8 matrix and evidence are in [TEST-PLAN.md](TEST-PLAN.md) and
+[TEST-REPORT.md](TEST-REPORT.md).
+
+## Privacy
+
+Local progress, account data, call audio, retention, and deletion are described
+in [PRIVACY.md](PRIVACY.md). The app bundles no ads, analytics, or third-party
+tracking SDKs.
 
 ## Licence
 
