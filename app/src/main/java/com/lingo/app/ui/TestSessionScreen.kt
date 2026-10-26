@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.os.SystemClock
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -278,6 +280,8 @@ fun TestSessionScreen(
             )
             if (phase == TestPhase.ONGOING) {
                 val question = questions.getOrNull(index)
+                val compact = LocalConfiguration.current.let { it.screenWidthDp > it.screenHeightDp }
+                val scrollState = remember(index) { ScrollState(0) }
                 if (question == null) {
                     EmptyTest(onClose = onClose)
                 } else {
@@ -309,29 +313,56 @@ fun TestSessionScreen(
                             height = 6.dp,
                             color = Emerald,
                         )
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(if (compact) 10.dp else 24.dp))
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .verticalScroll(rememberScrollState()),
+                                .verticalScroll(scrollState),
                         ) {
                             Text(
                                 text = question.prompt,
                                 style = MaterialTheme.typography.headlineSmall,
                                 color = Ink,
                             )
-                            Spacer(Modifier.height(20.dp))
-                            question.options.forEachIndexed { optionIndex, option ->
-                                ChoiceOption(
-                                    letter = ('A' + optionIndex).toString(),
-                                    text = option,
-                                    state = if (answers[index] == optionIndex) OptionState.SELECTED else OptionState.DEFAULT,
-                                    onClick = {
-                                        answers[index] = optionIndex
-                                        showFinishHint = false
-                                    },
-                                )
-                                Spacer(Modifier.height(10.dp))
+                            Spacer(Modifier.height(if (compact) 12.dp else 20.dp))
+                            if (compact) {
+                                question.options.chunked(2).forEachIndexed { rowIndex, rowOptions ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    ) {
+                                        rowOptions.forEachIndexed { columnIndex, option ->
+                                            val optionIndex = rowIndex * 2 + columnIndex
+                                            ChoiceOption(
+                                                letter = ('A' + optionIndex).toString(),
+                                                text = option,
+                                                state = if (answers[index] == optionIndex) OptionState.SELECTED else OptionState.DEFAULT,
+                                                onClick = {
+                                                    answers[index] = optionIndex
+                                                    showFinishHint = false
+                                                },
+                                                modifier = Modifier.weight(1f),
+                                            )
+                                        }
+                                        if (rowOptions.size == 1) {
+                                            Spacer(Modifier.weight(1f))
+                                        }
+                                    }
+                                    Spacer(Modifier.height(8.dp))
+                                }
+                            } else {
+                                question.options.forEachIndexed { optionIndex, option ->
+                                    ChoiceOption(
+                                        letter = ('A' + optionIndex).toString(),
+                                        text = option,
+                                        state = if (answers[index] == optionIndex) OptionState.SELECTED else OptionState.DEFAULT,
+                                        onClick = {
+                                            answers[index] = optionIndex
+                                            showFinishHint = false
+                                        },
+                                    )
+                                    Spacer(Modifier.height(10.dp))
+                                }
                             }
                             Spacer(Modifier.height(10.dp))
                             Row(
@@ -360,7 +391,7 @@ fun TestSessionScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 12.dp),
+                                .padding(vertical = if (compact) 6.dp else 12.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {

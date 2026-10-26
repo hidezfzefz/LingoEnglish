@@ -1398,24 +1398,28 @@ class CallStore(
     }
 
     private fun friendlyError(error: Throwable): String {
-        val raw = error.message.orEmpty().trim()
+        val raw = error.message.orEmpty()
+        // Map known server messages to short, human words. Never return raw
+        // PostgREST text: it can contain request URLs and Authorization headers.
         return when {
+            raw.contains("No learner", true) -> "No learner has that friend code."
+            raw.contains("own friend code", true) -> "That is your own friend code."
+            raw.contains("unavailable", true) -> "This learner is unavailable."
+            raw.contains("blocked", true) -> "This learner is blocked."
             raw.contains("offline", true) -> "That learner is offline right now."
             raw.contains("another call", true) -> "That learner is on another call."
-            raw.contains("Friend codes", true) -> raw
-            raw.contains("No learner", true) -> raw
-            raw.contains("blocked", true) -> raw
-            raw.contains("already in a call", true) -> raw
-            raw.contains("JWT", true) || raw.contains("session", true) ||
-                raw.contains("401", true) || raw.contains("permission denied", true) ->
+            raw.contains("already in a call", true) -> "You are already in a call."
+            raw.contains("Friend codes have", true) -> "Friend codes have six letters or numbers."
+            raw.contains("no longer ringing", true) -> "This call is no longer ringing."
+            raw.contains("Not authenticated", true) || raw.contains("JWT", true) ||
+                raw.contains("session", true) || raw.contains("401", true) ||
+                raw.contains("permission denied", true) ->
                 "Your session expired. Sign in again."
             raw.contains("finished call", true) ->
                 "The call is still finishing. Tap a star again."
             raw.contains("timeout", true) || raw.contains("connect", true) ->
                 "Can't reach the call service. Check your connection."
             raw.isBlank() -> "Something went wrong. Please try again."
-            // Never surface raw PostgREST text here: it can contain request
-            // URLs and Authorization headers.
             else -> "Something went wrong. Please try again."
         }
     }

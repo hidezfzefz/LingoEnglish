@@ -10,8 +10,8 @@ Reviewer: Lingo maintainers (self-review, no external penetration test).
 | --- | --- |
 | Package | `com.lingo.app` |
 | Version | `1.8` (`versionCode 9`) |
-| APK | `app-release.apk`, 70 MB |
-| SHA-256 | `5fa0caaaa35e8b56d42c9ac60f0e709c7ce5c037a4591f7ed9a44f15940c6842` |
+| APK | `app-release.apk`, 72,948,079 bytes |
+| SHA-256 | `0394199900e79bf2ebdf744c72725bf0334a8be73efde7235a31eac89d7b39b7` |
 | Signature | APK Signature Scheme v2, `CN=Android Debug` (see A-01) |
 | Minimum / target SDK | 26 / 37 |
 
@@ -37,6 +37,8 @@ The app is distributed as a sideloaded APK from GitHub. There is no Play Store l
 | S-04 | Medium | Internal `SECURITY DEFINER` helpers were exposed as PostgREST RPCs. `is_active_user` and `is_blocked_pair` could disclose ban/block relationships; `touch_last_seen` and `expire_stale_calls` were never intended for clients. | `public` functions | Revoked `EXECUTE` from `PUBLIC`, `anon`, and `authenticated` on those four helpers. Kept `my_level()` executable because the weekly-board RLS policy needs it; it only reads the caller's level. Verified helper RPC now returns `403` / `42501`. | Fixed |
 | S-05 | Medium | LiveKit's merged manifest added `CAMERA`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PROJECTION`, and `ScreenCaptureService` even though Lingo is audio-only. This widened permissions and exposed an unused screen-capture surface. | `AndroidManifest.xml` | Removed all three permissions and the service with manifest merger rules. Confirmed absent from the merged release manifest; audio permissions (`RECORD_AUDIO`, `MODIFY_AUDIO_SETTINGS`, `BLUETOOTH_CONNECT`) remain. | Fixed |
 | S-06 | Medium | Sign-up metadata could place arbitrary text in `avatar_sticker` or an unbounded string in `country`; the trigger copied it without validation. | `public.profiles`, `handle_new_user()` | Added a sticker-key constraint (`^[A-Z_]{1,24}$`), a 56-character country limit, and a trigger that trims/validates display name, sticker, and country before insert. Existing rows passed validation. | Fixed |
+| S-07 | Medium | A failed friend-code call rendered the raw PostgREST/HTTP error in the call sheet. The message included the request URL and redacted `Authorization` metadata (token prefix and length), exposing backend details to the learner. | `CallStore.friendlyError()` | Replaced the fall-through raw message with a closed allow-list of known server conditions and short canonical text. Unknown failures now return “Something went wrong. Please try again.” Tested invalid code, own code, and blocked pair. | Fixed |
+| S-08 | Low | Semgrep flagged four GitHub Actions steps pinned to mutable version tags, allowing a tag to be moved to different code after review. | `.github/workflows/content-audit.yml` | Pinned `actions/checkout`, `actions/setup-java`, `android-actions/setup-android`, and `gradle/actions/setup-gradle` to full commit SHAs with version comments. | Fixed |
 
 ### S-01 session storage evidence
 
@@ -57,12 +59,26 @@ Live catalog checks after the migration:
 - A temporary account called the normal RPCs (`my_profile`, `sync_profile`, `queue_size`, `claim_match`, `leave_call_queue`, `my_call_state`, `weekly_leaderboard`, `submit_weekly_score`) successfully, while direct profile update, direct queue insert, and helper RPC calls were denied with `403` / `42501`. The account was deleted after the test.
 - The migration is applied as `20261026000000_security_hardening` and is tracked in Supabase migration history.
 
+### S-07 error-message evidence
+
+The original unknown-code reply showed the PostgREST request URL plus `Headers: {Authorization=[Bearer ey... (len=968)] ...}`. After the fix, the same flow shows only:
+
+- `No learner has that friend code.`
+- `That is your own friend code.`
+- `This learner is blocked.`
+
+The mapping is an allow-list; it never echoes the exception. Unit/lint builds pass after the change.
+
+### S-08 workflow evidence
+
+All four `uses:` references now point at the commit SHA behind the reviewed tag (for example, `gradle/actions/setup-gradle@3f5f9ada… # v6`). A fresh Semgrep run reports only the accepted exported-launcher warning.
+
 ## Open risks accepted for v1.8
 
 | ID | Severity | Risk | Why it is open | Mitigation / next step |
 | --- | --- | --- | --- | --- |
 | A-01 | Medium | The release is signed with the local Android debug key (`CN=Android Debug`) instead of a protected release key. The key is not committed, but it is not stored to release-key standards. | Rotating the signing key would prevent v1.8 from installing over existing v1.7/v1.8 builds and could strand learners' local progress. The owner chose update continuity for this release. | Keep the keystore offline and backed up. Introduce a managed release key with an explicit migration/reinstall plan in a later version; do not lose the current key while updates are expected. |
-| A-02 | Medium | Password recovery uses the custom scheme `lingo://reset-password`. Another installed app can register the same scheme and may receive the recovery link. | The Supabase project has no first-party HTTPS domain for Android App Links, and adding one would expand this release's scope. The recovery token is short-lived, used for one password change, kept in memory only, and never persisted. | Move recovery to a verified HTTPS App Link when a project domain is available. Users should ignore unexpected apps offered to open a recovery link. |
+| A-02 | Medium | Password recovery uses the custom scheme `lingo://reset-password`. Another installed app can register the same scheme and may receive the recovery link. Supabase recovery tokens remain valid for their normal lifetime (about one hour), so possessing the link again before expiry allows another password change even after it has been used once. | The Supabase project has no first-party HTTPS domain for Android App Links, and adding one would expand this release's scope. The recovery token is kept in memory only and is never persisted by the app; it is discarded after a successful change, but the server-side token lifetime is unchanged. | Move recovery to a verified HTTPS App Link when a project domain is available, or exchange the link for a one-time server-side nonce. Users should ignore unexpected apps offered to open a recovery link and request a fresh link if one may have leaked. |
 | A-03 | Low | Email confirmation is disabled (`mailer_autoconfirm=true`), so an address is not proven to belong to the signer. | Google Workspace SMTP migration is deferred; confirmation email delivery is not yet reliable. Auth email sending is rate-limited. | Re-enable confirmation after the SMTP migration, then test sign-up and recovery on a real device. |
 | A-04 | Low | The launcher activity is exported and flagged by Semgrep; `androidx.profileinstaller.ProfileInstallReceiver` is also exported. | Android requires the launcher activity to be exported. The profile installer receiver is guarded by the system-only `android.permission.DUMP` permission. | No change. The activity opens the normal login-gated UI; it grants no privileged action. Re-check the merged manifest each release. |
 
@@ -70,13 +86,14 @@ Live catalog checks after the migration:
 
 | Check | Result |
 | --- | --- |
-| `gitleaks git` (full tracked history) | 0 findings. |
+| `gitleaks git` (13-commit tracked history) | 0 findings. |
 | `gitleaks dir` (working tree) | 11 findings, all in ignored build outputs, `local.properties`, or `supabase/.env.local`; none tracked, none in the APK. |
 | OSV `querybatch` (204 resolved Maven modules) | 0 known vulnerabilities. |
-| Semgrep (`p/default` + `p/secrets`, Docker) | 1 warning: exported launcher activity (A-04). No secrets or injection findings. |
-| Android lint | 0 errors. Remaining warnings are KTX style suggestions, newer-dependency notices, and an obsolete-SDK notice. |
-| APK content scan | Only the expected public Supabase anon JWT. No service-role, LiveKit secret, SMTP password, or private key material. |
-| Merged release manifest | Seven normal permissions plus the AndroidX dynamic-receiver permission; no camera, foreground-service, media-projection, or screen-capture entries. Only `MainActivity` and the DUMP-guarded profile installer receiver are exported; reminders and the startup provider are not. |
+| Semgrep (`p/default` + `p/secrets`, Docker) | 1 warning after S-08: exported launcher activity (A-04). No secrets or injection findings. |
+| Android lint | 0 errors, 39 warnings. Remaining warnings are KTX style suggestions, newer-dependency notices, and an obsolete-SDK notice. |
+| APK content scan | One JWT: the expected public Supabase anon token (`role=anon`). No service-role key, LiveKit secret, SMTP password, Supabase access token, database password, or private key material. |
+| Merged release manifest | Eight normal permissions (`INTERNET`, `ACCESS_NETWORK_STATE`, `RECORD_AUDIO`, `MODIFY_AUDIO_SETTINGS`, `BLUETOOTH`, `BLUETOOTH_CONNECT`, `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`) plus the AndroidX dynamic-receiver permission; no camera, foreground-service, media-projection, or screen-capture entries. Only `MainActivity` and the DUMP-guarded profile installer receiver are exported; reminders and the startup provider are not. |
+| Signature / badging | APK Signature Scheme v2, `CN=Android Debug`, certificate SHA-256 `3888438c2652dff2a67d2953996eddc0b83ff8f6f4167a5161e6794c766c1df3`; version `1.8` (`9`), min SDK 26, target SDK 37. |
 | Auth/session code review | Password recovery tokens stay in memory and are cleared after use; sign-in errors do not reveal whether an email exists; the UI is gated until a session exists. |
 | Edge Function review | `livekit-token` requires a valid Supabase JWT, confirms the caller is a participant in a live session, checks bans, and returns a short-lived room token. `auth-callback` is a static public page only. |
 | Notification review | All `PendingIntent`s are immutable; the reminder action is package-scoped; tapping a reminder still passes the login gate. |
@@ -84,10 +101,11 @@ Live catalog checks after the migration:
 
 ## Verification limits
 
-- A two-phone live-audio call was not repeated for this review. The token function, call RPCs, RLS, and the release build were reviewed and API-tested; earlier call-flow QA remains the reference for LiveKit audio behaviour.
+- Two-phone live-audio quality was not tested. The call signalling, LiveKit room join, mute, timer, End, rating, report, and block paths were exercised with a second headless participant; real speaker/microphone quality remains a physical-device check.
 - Fully signed-out testing on the physical phone is still pending; the release build was signed in, navigated Home/Practice/Call/Progress, and exercised the post-RLS network paths on an emulator.
+- Recovery email delivery was not tested because the test account uses an unroutable `example.com` address. The in-app deep-link handling, mismatch validation, successful password change, old-password rejection, new-password sign-in, invalid-link message, and link reuse before expiry were exercised with a server-generated recovery link.
 - No external penetration test or OWASP ZAP run was performed. ZAP targets web deployments; Lingo's public web surface is limited to Supabase Auth and the static auth callback.
 
 ## Conclusion
 
-No critical findings remain. The six findings above were fixed and verified, including all high-severity items. Four risks remain accepted for v1.8 (A-01 to A-04), with the debug signing key and the custom-scheme recovery link being the two medium items. The release is approved for GitHub distribution on that basis, with the signing-key migration planned for a later version.
+No critical findings remain. The eight findings above (S-01 to S-08) were fixed and verified, including all high-severity items. Four risks remain accepted for v1.8 (A-01 to A-04), with the debug signing key and the custom-scheme recovery link being the two medium items. Release SHA-256 is `0394199900e79bf2ebdf744c72725bf0334a8be73efde7235a31eac89d7b39b7`. The release is approved for GitHub distribution on that basis, with the signing-key migration planned for a later version.
