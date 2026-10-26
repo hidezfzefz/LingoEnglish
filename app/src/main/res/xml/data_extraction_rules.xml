@@ -3,8 +3,10 @@
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="sharedpref" path="com.lingo.app_preferences.xml" />
+        <exclude domain="sharedpref" path="lingo_secure_auth.xml" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="com.lingo.app_preferences.xml" />
+        <exclude domain="sharedpref" path="lingo_secure_auth.xml" />
     </device-transfer>
 </data-extraction-rules>

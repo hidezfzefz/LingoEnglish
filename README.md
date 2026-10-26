@@ -31,6 +31,8 @@ keystore and keep it out of version control.
   TimePicker-ready settings, and a scrollable settings sheet.
 - Duplicate-submit guards for sign-in, sign-up, password reset, and friend
   calls, plus rescheduling after reboot, clock changes, and app updates.
+- Keystore-backed session storage and least-privilege Supabase access: the app
+  reads through RLS and writes only through validated RPCs.
 - Version 1.8 (versionCode 9) installs directly over 1.7 without clearing
   local progress.
 
@@ -121,9 +123,10 @@ The APK is written to:
 app/build/outputs/apk/release/app-release.apk
 ```
 
-See [BUILDING.md](BUILDING.md) for the low-resource Gradle settings and
+See [BUILDING.md](BUILDING.md) for the low-resource Gradle settings,
 [supabase/README.md](supabase/README.md) for backend deployment, auth,
-password recovery, LiveKit, and SMTP setup.
+password recovery, LiveKit, and SMTP setup, and
+[SECURITY-REVIEW.md](SECURITY-REVIEW.md) for the v1.8 security review.
 
 ## Project layout
 

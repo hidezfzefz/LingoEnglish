@@ -66,7 +66,9 @@ class CallStore(
 
     private val supabase: SupabaseClient? = if (configured) {
         createSupabaseClient(BuildConfig.SUPABASE_URL, BuildConfig.SUPABASE_ANON_KEY) {
-            install(Auth)
+            install(Auth) {
+                sessionManager = SecureSessionStorage.create(appContext)
+            }
             install(Postgrest)
         }
     } else {

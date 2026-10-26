@@ -2,4 +2,5 @@
 <!-- Keep local learning progress, but never back up Supabase auth tokens. -->
 <full-backup-content>
     <exclude domain="sharedpref" path="com.lingo.app_preferences.xml" />
+    <exclude domain="sharedpref" path="lingo_secure_auth.xml" />
 </full-backup-content>
