@@ -11,6 +11,8 @@ Reviewer: Lingo maintainers (self-review, no external penetration test).
 | Package | `com.lingo.app` |
 | Version | `1.8` (`versionCode 9`) |
 | APK | `app-release.apk`, 72,948,079 bytes |
+| Published | [v1.8 GitHub release](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.8) |
+| CI | [Run 40412239645](https://github.com/hidezfzefz/LingoEnglish/actions/runs/40412239645) passed on `67ae40b` |
 | SHA-256 | `0394199900e79bf2ebdf744c72725bf0334a8be73efde7235a31eac89d7b39b7` |
 | Signature | APK Signature Scheme v2, `CN=Android Debug` (see A-01) |
 | Minimum / target SDK | 26 / 37 |
@@ -102,7 +104,9 @@ All four `uses:` references now point at the commit SHA behind the reviewed tag 
 ## Verification limits
 
 - Two-phone live-audio quality was not tested. The call signalling, LiveKit room join, mute, timer, End, rating, report, and block paths were exercised with a second headless participant; real speaker/microphone quality remains a physical-device check.
-- Fully signed-out testing on the physical phone is still pending; the release build was signed in, navigated Home/Practice/Call/Progress, and exercised the post-RLS network paths on an emulator.
+- Fully signed-out testing on the physical phone is still pending; the published build
+  was installed over 1.7 with the owner's session preserved, then navigated
+  Home/Practice/Call/Progress on the phone and emulator.
 - Recovery email delivery was not tested because the test account uses an unroutable `example.com` address. The in-app deep-link handling, mismatch validation, successful password change, old-password rejection, new-password sign-in, invalid-link message, and link reuse before expiry were exercised with a server-generated recovery link.
 - No external penetration test or OWASP ZAP run was performed. ZAP targets web deployments; Lingo's public web surface is limited to Supabase Auth and the static auth callback.
 

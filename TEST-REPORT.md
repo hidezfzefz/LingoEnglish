@@ -1,29 +1,47 @@
 # Test report — Lingo English 1.8
 
-Build: `1.8` (`versionCode 9`), release APK signed with the debug key  
-Platform: Android 17 / API 37 emulator (1080×2400, 420 dpi)  
-Test window: 2026-10-26  
-Plan: `TEST-PLAN.md`
+- Build: `1.8` (`versionCode 9`), release APK signed with the debug key
+- Platforms: Android 17 / API 37 emulator (1080×2400, 420 dpi) and Samsung SM-A546E, Android 16 / API 36 (1080×2340)
+- Test window: 2026-10-26
+- Plan: `TEST-PLAN.md`
 
 ## Result
 
 **Pass, with the environment limits listed at the end.** Every core journey — login,
 lessons, weekly test, level exam, practice, live calls, ratings, reports, blocking,
 reminders, offline recovery, responsive layouts, accessibility, data preservation, and
-security smoke tests — was exercised on the release runtime. Two phone-only checks
-(two-phone audio quality and a fully signed-out physical-phone pass) remain open because
-the physical phone was not connected; they are not code regressions and are called out
-below.
+security smoke tests — was exercised on the release runtime. The published GitHub APK
+was downloaded over HTTPS, its checksum and signer verified, and installed over the
+existing builds on both the emulator and the physical phone without uninstalling; the
+phone’s session and local data were preserved. Two phone-only checks remain open:
+two-phone audio quality and a fully signed-out physical-phone pass. They are not code
+regressions and are called out below.
 
 Final release artifact:
 
 | Item | Value |
 | --- | --- |
 | APK | `app/build/outputs/apk/release/app-release.apk` |
+| Published | <https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.8> |
+| Assets | `LingoEnglish-1.8.apk`, `LingoEnglish-1.8.apk.sha256` |
 | Size | 72,948,079 bytes |
 | SHA-256 | `0394199900e79bf2ebdf744c72725bf0334a8be73efde7235a31eac89d7b39b7` |
-| Signature | APK Signature Scheme v2, `CN=Android Debug` (accepted risk A-01) |
+| Signature | APK Signature Scheme v2, `CN=Android Debug`, cert SHA-256 `3888438c…` (accepted risk A-01) |
 | Version | `1.8` (`versionCode 9`), min SDK 26, target SDK 37 |
+| CI | [Run 40412239645](https://github.com/hidezfzefz/LingoEnglish/actions/runs/40412239645) on `67ae40b`: unit tests and Android Lint passed |
+
+## Published-release verification
+
+- `v1.8` tag points at `67ae40b`; the repository is public and MIT licensed.
+- The release APK was re-downloaded from the release URL over HTTPS. Its SHA-256 matched
+  `0394199900e79bf2ebdf744c72725bf0334a8be73efde7235a31eac89d7b39b7`, and `apksigner`
+  reported the same V2 debug certificate as the build output.
+- The downloaded APK installed with `adb install -r` over the debug build on the
+  emulator, and over 1.7 on the physical phone. Both retained their existing session and
+  local progress.
+- The APK pulled back from the phone after install had the same SHA-256 and V2 certificate.
+- Cold start on the physical phone was 2.6 s; the emulator cold start after the
+  over-install was 4.9 s. No normal-launch crash or ANR occurred on either device.
 
 ## Journeys
 
@@ -40,11 +58,11 @@ Final release artifact:
 | J9 | Call setup, matching, friend codes | Pass, two-phone ringing not repeated | A2 profile, stats and friend code rendered; start/cancel queue worked; invalid code, own code, and blocked pair returned safe messages; double-tap guard prevents a second search. A second temporary account rang the phone over the real signalling path, and Accept/Decline appeared correctly. Cross-level friend calls are allowed by the RPC; only same-level random matching filters by level. |
 | J10 | Active call, safety, history | Pass, audio quality not tested | Connected call with a second LiveKit participant: timer ran, mic toggled, reactions rendered, End produced the summary. 5-star rating persisted (`rating_count=1`, average 5.0). Report → Harassment → “Report and block” ended the call, showed “Report sent”, created the report row and block row, and a later call returned “This learner is blocked.” Call history counters updated. |
 | J11 | Progress, stickers, weekly board | Pass, leaderboard refresh not re-driven | XP (200), A2 level, weekly 2/10, lesson count and streak matched Home and the level path. Sticker and stat values were checked. The weekly leaderboard was displayed from its last load but was not manually refreshed in this pass. |
-| J12 | Settings, reminders, notifications | Pass | Goal 30/40 persisted across dismissal and relaunch. Reminders defaulted off at 19:00; deny showed guidance and a system-settings link; grant + 20:00 scheduled one inexact `RTC_WAKEUP` alarm; reboot rescheduled it; changing the time replaced it; disable cancelled it. A 21:10 alarm fired and rescheduled for tomorrow but correctly posted no notification because the daily goal was already met. With today's XP reset and yesterday as the last study day, the 21:14 and 21:21 alarms posted notification `1801` on `practice_reminders`: “A few minutes of English?” / “Your 1-day streak is waiting. Tap to practise.” The notification's content intent opened the Practice hub when delivered to a warm app. Reminder was then disabled, the alarm cancelled, and the phone restored to off/19:00. |
+| J12 | Settings, reminders, notifications | Pass | Goal 30/40 persisted across dismissal and relaunch. Reminders defaulted off at 19:00; deny showed guidance and a system-settings link; grant + 20:00 scheduled one inexact `RTC_WAKEUP` alarm; reboot rescheduled it; changing the time replaced it; disable cancelled it. A 21:10 alarm fired and rescheduled for tomorrow but correctly posted no notification because the daily goal was already met. On the emulator, with today's XP reset and yesterday as the last study day, the 21:14 and 21:21 alarms posted notification `1801` on `practice_reminders`: “A few minutes of English?” / “Your 1-day streak is waiting. Tap to practise.” The notification's content intent opened the Practice hub when delivered to a warm app. The emulator reminder was then disabled, the alarm cancelled, and its settings restored to off/19:00. |
 | J13 | Session lifecycle | Pass, fault injection limited | Keystore-backed session survived force-stop, over-install and reboot; sign-out returned the gate; sign-in restored the same friend code and 200 XP/A2. Corrupted encrypted prefs and Keystore-unavailable fallback were reviewed, not forced. |
 | J14 | Offline and recovery | Pass, partial | Airplane-mode launch and Home/Learn/Practice/Progress navigation worked from local data; Call showed a retry instead of hanging; reconnecting and tapping Try again loaded the A2 hub. Offline sign-in and an offline friend call were not separately driven. |
 | J15 | Permission prompts | Pass, mid-call revoke not run | Notification allow/deny and microphone allow/deny appeared only in context. Denying the microphone produced “Microphone access is needed for a live call.” with no crash or repeated prompt. Android kills the process when a runtime permission is revoked during active use; that platform case was left as a documented limit rather than forced. |
-| J16 | Data preservation / upgrade | Pass | Over-install preserved session, 200 XP, A2, friend code and writing draft. The final release APK was then installed over the debug build without uninstalling: `1.8` (`9`), session still signed in, 200 XP/A2/friend code `D38-17D` intact, Settings drag handle labelled, weekly 2/10 retained, cold start 4.9 s. Force-stop/relaunch preserved the same values again. Earlier, a post-reboot first launch showed an emulator-wide ANR while system services were still starting; a normal cold launch then completed in about 3.6 s. |
+| J16 | Data preservation / upgrade | Pass | Over-install preserved session, 200 XP, A2, friend code and writing draft. The final release APK was then installed over the debug build without uninstalling: `1.8` (`9`), session still signed in, 200 XP/A2/friend code `D38-17D` intact, Settings drag handle labelled, weekly 2/10 retained, cold start 4.9 s. Force-stop/relaunch preserved the same values again. The same published APK was downloaded over HTTPS and installed over 1.7 on the owner's Samsung SM-A546E (Android 16) without uninstalling; the signed-in session, 60 XP, 2-day streak, A1 level, daily goal 80, friend code `E6E-108`, writing data, and the enabled 00:29 reminder were all preserved. Display size, density, font scale and rotation were unchanged, and cold start was 2.6 s. Earlier, a post-reboot emulator launch showed a system-wide ANR while services were still starting; a normal cold launch then completed in about 3.6 s. |
 | J17 | Accessibility | Pass, TalkBack manual limited | Icon-only controls carry descriptions; reminder row exposes a switch/checkable state; daily-goal chips expose their number and 48 dp minimum height; headings are marked. Font scales 1.3 and 2.0 kept Home and Settings scrollable with no clipped actions. The sheet drag handle was labelled during this pass. A full TalkBack read-through was not performed. |
 | J18 | Responsive layouts | Pass | 360×640, 411×914 and 480×1000 dp portrait, plus 411×914 landscape. Home, Call and Exam had no horizontal scroll or clipped primary actions; bottom navigation stayed usable. |
 | J19 | Security smoke checks | Pass | Signed-out users cannot reach tabs; recovery tokens stay in memory and are cleared after use; APK contains only the public anon JWT; direct writes and helper RPCs are denied; scans below are clean apart from accepted findings. |
@@ -62,7 +80,7 @@ Final release artifact:
 | --- | --- |
 | `:app:testDebugUnitTest` | 17 tests, 0 failures (ContentAudit 1, ReminderSchedule 10, NextStep 6) |
 | `:app:lintDebug` | 0 errors, 39 warnings |
-| `gitleaks git` | 0 findings across 13 commits |
+| `gitleaks git` | 0 findings across tracked history |
 | `gitleaks dir` | 11 findings, all ignored files (`build/`, `local.properties`, `supabase/.env.local`); none tracked |
 | OSV `querybatch` | 0 vulnerabilities in 204 Maven modules |
 | Semgrep (`p/default` + `p/secrets`, Docker) | 1 warning: expected exported launcher activity (A-04) |
@@ -72,9 +90,12 @@ Final release artifact:
 
 ## Environment limits
 
-- **Physical phone disconnected.** The final APK could not be installed on the physical
-  device during this run. The emulator pass used the same release APK and signing key;
-  the owner still needs to install it and restore the physical reminder to off/19:00.
+- **Physical-phone reminder and signed-out pass.** The published APK installed over 1.7
+  on the physical phone with its enabled 00:29 reminder and scheduled inexact
+  `RTC_WAKEUP` alarm preserved. Its next delivery falls after this test window, so the
+  notification tap itself was verified on the emulator rather than on the phone. The
+  phone also stays signed in as the owner, so a fully signed-out physical-phone journey
+  was not run; both are owner checks rather than code gaps.
 - **Two-phone audio quality.** Call signalling, LiveKit room join, controls, rating,
   report and block were exercised with a headless second participant and a second
   account. Speaker/microphone quality, echo, and Bluetooth routing still need two real
@@ -92,7 +113,7 @@ Final release artifact:
   RenderThread, with the emulator radio service near 100% CPU and thousands of major
   faults. The same content intent opened Practice when delivered to a warm app, and
   normal cold starts completed in 4.9–8.0 s. This is an emulator resource limit, not app
-  logic; the physical phone should still confirm the notification tap after install.
+  logic; the physical phone’s scheduled 00:29 reminder will confirm delivery in normal use.
 - **TalkBack.** Labels, roles and touch targets were checked through UIAutomator and
   Android lint; a complete spoken-navigation pass was not run.
 
@@ -100,8 +121,11 @@ Final release artifact:
 
 No unresolved app-logic crash, data loss, or high-severity security finding remains. The
 only ANRs seen were two emulator RenderThread stalls during notification taps and the
-earlier post-reboot system-wide start; normal cold launches completed, including the
-final release installed over the debug build. The two medium accepted risks are the
-debug signing key (A-01) and the custom-scheme recovery link (A-02). Stage 7 is complete
-on that basis; the physical-phone install and two-phone audio check remain owner actions
-after shipping.
+earlier post-reboot system-wide start; normal cold launches completed on both devices,
+including the final release installed over the debug build. The two medium accepted risks
+are the debug signing key (A-01) and the custom-scheme recovery link (A-02). The v1.8
+release is published with a verified APK, checksum, signature and green CI, and it
+installed over the existing debug build on the emulator and over 1.7 on the physical
+phone with local data preserved. Stage 7 testing and stage 8 shipping are complete on
+that basis. The two-phone audio check and fully signed-out physical-phone pass remain
+owner actions; the phone’s next scheduled reminder is at 00:29.

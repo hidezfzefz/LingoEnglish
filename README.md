@@ -11,13 +11,14 @@ creative, high-stakes conversations.
 
 Install the latest APK from the
 [Releases page](https://github.com/hidezfzefz/LingoEnglish/releases/latest).
+The current build is [Lingo English 1.8](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.8).
 Android 8.0 (API 26) or newer is required.
 
 ```bash
 adb install -r LingoEnglish-1.8.apk
 ```
 
-Each release publishes `LingoEnglish-1.8.apk` and
+That release publishes `LingoEnglish-1.8.apk` and
 `LingoEnglish-1.8.apk.sha256`. Verify the download before installing:
 
 ```bash
