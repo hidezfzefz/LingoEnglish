@@ -75,9 +75,9 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
 ## Open at launch
 
 1. **Physical-phone reminder tap and signed-out pass.** The published APK is installed
-   on the physical phone, and its enabled 00:29 reminder with its scheduled inexact
-   `RTC_WAKEUP` alarm was preserved. The next delivery falls after the test window, so
-   the notification tap was verified on the emulator; the phone also stays signed in as
+   on the physical phone, and its 00:29 reminder was preserved. The 27 Oct alarm fired
+   and rescheduled for 28 Oct, but the notification had been cleared when checked later,
+   so the on-phone tap still needs owner confirmation. The phone also stays signed in as
    the owner, so a fully signed-out journey was not run. Both are owner checks.
 2. **Two-phone audio quality.** Signalling, room join, mute, timer, rating,
    report and block passed with a second account and a headless LiveKit peer.
