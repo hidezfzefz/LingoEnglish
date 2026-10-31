@@ -105,6 +105,12 @@ class ProgressStore(context: Context) {
         private set
     var weeklyAttemptInProgress by mutableStateOf(prefs.getBoolean("weekly_in_progress", false))
         private set
+    var launchCutsceneVersion by mutableIntStateOf(prefs.getInt("launch_cutscene_version", 0))
+        private set
+    var lessonIntrosSeen by mutableStateOf(
+        prefs.getStringSet("lesson_intros_seen", emptySet())?.toSet() ?: emptySet(),
+    )
+        private set
 
     var todayXp by mutableIntStateOf(0)
         private set
@@ -416,9 +422,30 @@ class ProgressStore(context: Context) {
         prefs.edit().putString("writing_$exerciseId", text).apply()
     }
 
+    /** Records that the launch cutscene for this app version has been shown. */
+    fun markLaunchCutsceneSeen(version: Int) {
+        if (launchCutsceneVersion >= version) return
+        launchCutsceneVersion = version
+        prefs.edit().putInt("launch_cutscene_version", version).apply()
+    }
+
+    /** Records that a lesson's one-time intro has been shown, even if it was skipped. */
+    fun markLessonIntroSeen(lessonId: String) {
+        if (lessonId in lessonIntrosSeen) return
+        lessonIntrosSeen = lessonIntrosSeen + lessonId
+        prefs.edit().putStringSet("lesson_intros_seen", lessonIntrosSeen).apply()
+    }
+
     fun reset() {
         val goal = dailyGoal
-        prefs.edit().clear().putInt("daily_goal", goal).apply()
+        // Keep the brand cutscene marker so a learning reset does not replay the
+        // full launch sequence on the next cold start. Lesson intros do reset.
+        val launchVersion = launchCutsceneVersion
+        prefs.edit()
+            .clear()
+            .putInt("daily_goal", goal)
+            .putInt("launch_cutscene_version", launchVersion)
+            .apply()
         totalXp = 0
         streak = 0
         bestStreak = 0
@@ -447,6 +474,7 @@ class ProgressStore(context: Context) {
         weeklyScore = 0
         activeLevelExamTarget = null
         weeklyAttemptInProgress = false
+        lessonIntrosSeen = emptySet()
     }
 
     val accuracy: Int
