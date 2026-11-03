@@ -11,8 +11,8 @@ Reviewer: Lingo maintainers (self-review, no external penetration test).
 | Package | `com.lingo.app` |
 | Version | `1.9` (`versionCode 10`) |
 | APK | `app-release.apk`, 72,997,289 bytes |
-| Published | Pending final push; recorded in `LAUNCH-CHECKLIST.md` |
-| CI | Pending final push; recorded in `LAUNCH-CHECKLIST.md` |
+| Published | [v1.9](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9) |
+| CI | [Content audit 41730852766](https://github.com/hidezfzefz/LingoEnglish/actions/runs/41730852766) — pass |
 | SHA-256 | `1d37c06a82d8f8ecb54e3e5ac9ff650929567d9bee63a4f759fb2764552cbaec` |
 | Signature | APK Signature Scheme v2, `CN=Android Debug` (see A-01) |
 | Minimum / target SDK | 26 / 37 |
