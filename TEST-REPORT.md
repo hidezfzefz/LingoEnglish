@@ -40,7 +40,8 @@ Final release artifact:
 - `LingoApp`: one `openLesson()` wrapper for every entry point; intro marked seen on
   entry; completed lessons open directly; back handling leaves the intro without replay.
 - `ProgressStore`: additive `launch_cutscene_version` and `lesson_intros_seen` markers;
-  reset behaviour keeps them consistent with a fresh install.
+  a learning reset clears the lesson intros but keeps the launch marker, so resetting
+  progress does not replay the full launch sequence.
 - `app/build.gradle.kts`: version `1.9` / `versionCode 10`.
 
 ## Journey results
@@ -67,6 +68,21 @@ The remaining v1.8 journeys — sign-up, recovery, weekly test, level exam, prac
 live calls, progress/leaderboard, reminders, permissions, and responsive layouts — are
 unchanged by this release and retain their v1.8 evidence in the previous report. No v1.8
 feature was removed, and the release introduces no new permissions or network paths.
+
+## Stage 5 skill applicability
+
+| Skill | Applied? | Reason |
+| --- | --- | --- |
+| `convio/thorough-testing` | Yes, Android equivalent | Wrote `TEST-PLAN.md`, ran unit tests and end-to-end phone journeys, covered failure cases, checked accessibility, performance, and responsive layouts, and wrote this report. Browser/Playwright/Lighthouse/linkinator steps do not apply to a native Compose app. |
+| `convio/no-account-resources` | No | No preview URL, hosted database, or borrowed browser is needed; the APK is installed directly on the owner’s phone. |
+| `jeffallan/playwright-expert` | No | No web UI or Playwright suite exists. Android UI journeys were driven with `adb` and UIAutomator instead. |
+| `alirezarezvani/playwright-pro` | No | Same reason; there is no browser test suite to scaffold or review. |
+| `wshobson/wcag-audit-patterns` | Yes, adapted | Applied POUR thinking to Compose semantics, labels, headings, contrast, 200% font, reduced motion, and touch targets. |
+| `lambdatest/accessibility-skill` | No | No LambdaTest account or cloud device grid is used; accessibility was checked with Android lint, UIAutomator, and the emulator TalkBack/font-scale pass. |
+
+Lighthouse mobile scores and Core Web Vitals are **N/A**: there is no web page. The
+Android performance equivalents are the cold-start measurements (1.61 s sting, 1.695 s
+offline launch) and the release APK size (72,997,289 bytes).
 
 ## Fixes made during testing
 

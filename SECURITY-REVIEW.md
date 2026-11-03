@@ -63,6 +63,16 @@ recovery path, no file or network access, and no new persisted personal data. It
 change the login gate: the launch runs before the gate, and the gate still blocks all tab
 content until a session exists.
 
+## Stage 4 skill applicability
+
+| Skill | Applied? | Reason |
+| --- | --- | --- |
+| `convio/web-security-review` | Yes | Used the secrets, dependencies, static-analysis, auth/session, input, data/privacy, and reporting steps. Web-only checks (CSP, cookies, CORS, payments, ZAP) do not apply to a native Compose app. |
+| `mukul975/performing-android-app-static-analysis-with-mobsf` | Manual equivalent | MobSF’s image could not be pulled because the host resolver failed for the registry. The same checklist was applied directly: manifest components, debuggable/backup flags, hardcoded-secret scan, storage review, network-security config, and APK inspection. |
+| `google/gke-platform-security` | No | No GKE, Kubernetes, or cloud cluster is part of Lingo. |
+| `mukul975/performing-web-application-vulnerability-triage` | No | No DAST/web application findings to triage; Semgrep results were triaged manually. |
+| `mukul975/implementing-web-application-logging-with-modsecurity` | No | No web server or ModSecurity/WAF deployment exists. |
+
 ## Findings and fixes
 
 The v1.8 findings remain fixed and were rechecked against the v1.9 tree and APK:
@@ -93,6 +103,7 @@ bundled strings selected in Compose state.
 | OSV `querybatch` | The v1.8 run found 0 vulnerabilities in 204 resolved Maven modules. v1.9 adds no dependencies, so the dependency set is unchanged. |
 | Android lint | 0 errors, 42 warnings. Remaining warnings are KTX style suggestions, newer-dependency notices, and an obsolete-SDK notice. |
 | Unit tests | 28 tests, 0 failures, including the new cutscene policy and content tests. |
+| MobSF-equivalent Android static checks | Release manifest is not debuggable; `allowBackup=true` but both backup rule files exclude `lingo_secure_auth.xml` and the legacy prefs; no custom `TrustManager`/`HostnameVerifier`; no cleartext HTTP URL; only the expected exported launcher activity and DUMP-guarded profile receiver; no hardcoded secret material. MobSF itself was not run because the Docker image pull was blocked by the host resolver. |
 | APK content scan | One JWT: the expected public Supabase anon token (`role=anon`). No service-role key, LiveKit secret, SMTP password, Supabase access token, database password, or private-key material. |
 | Merged release manifest | Eight normal permissions (`INTERNET`, `ACCESS_NETWORK_STATE`, `RECORD_AUDIO`, `MODIFY_AUDIO_SETTINGS`, `BLUETOOTH`, `BLUETOOTH_CONNECT`, `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`) plus the AndroidX dynamic-receiver permission; no camera, foreground-service, media-projection, or screen-capture entries. Only `MainActivity` and the DUMP-guarded profile installer receiver are exported. |
 | Signature / badging | APK Signature Scheme v2, `CN=Android Debug`, certificate SHA-256 `3888438c2652dff2a67d2953996eddc0b83ff8f6f4167a5161e6794c766c1df3`; version `1.9` (`10`), min SDK 26, target SDK 37. |
