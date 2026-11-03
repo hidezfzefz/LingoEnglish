@@ -3,7 +3,7 @@
 - Reviewed: 2026-11-03
 - Release: `1.9` (`versionCode 10`), APK signed with the project debug key
 - Distribution: public GitHub Release, sideloaded APK (no Play Store listing)
-- Status: **release candidate approved** — CI green on `94e4c78`; tag `v1.9` and release assets next
+- Status: **published** — CI green, tag `v1.9`, and release assets published and verified
 
 This checklist is adapted from `convio/launch-checklist` for an Android app.
 Web-only items are marked **N/A** with the reason, rather than left implicit.
@@ -13,7 +13,7 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
 | Item | Status | Evidence / notes |
 | --- | --- | --- |
 | Production build passes with understood warnings | **Done** | `:app:testDebugUnitTest` 28/28; `:app:lintDebug` 0 errors, 42 non-blocking warnings; release APK `1d37c06a…`, 72,997,289 bytes. |
-| Live release published and smoke-tested | **Ready** | CI [41730852766](https://github.com/hidezfzefz/LingoEnglish/actions/runs/41730852766) is green on `94e4c78`. Tag `v1.9` and publish `LingoEnglish-1.9.apk` + `.sha256`; the APK was already installed over the phone’s debug build with session and 133 XP / 3 lessons preserved. |
+| Live release published and smoke-tested | **Done** | [Lingo English 1.9](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9) published 2026-11-03. CI [41730852766](https://github.com/hidezfzefz/LingoEnglish/actions/runs/41730852766) is green on `94e4c78`. The downloaded `LingoEnglish-1.9.apk` matches SHA-256 `1d37c06a…`, V2 certificate `3888438c…`, version `1.9` (`10`), and 72,997,289 bytes. The same APK was installed over the phone’s debug build with session and 133 XP / 3 lessons preserved. |
 | Secrets on host; production keys distinct; nothing secret in client | **Done** | Only the public Supabase `anon` JWT is in the APK. Service-role, LiveKit secret, SMTP password and database password stay in `supabase/.env.local`. There is one Supabase project rather than separate staging/production projects; the anon key is public by design and RLS/RPCs enforce access. |
 | Database migrations applied; backup/PITR enabled | **Done, PITR not enabled** | Migration `20261026000000_security_hardening` remains in Supabase migration history. Physical backups (`walg_enabled=true`) are on; point-in-time recovery is off on the current plan. v1.9 adds no migration. |
 | Domain, HTTPS, canonical host, HSTS | **N/A** | No web deployment. APK and release assets are served by GitHub over HTTPS. |
@@ -69,7 +69,7 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
 | --- | --- | --- |
 | README: run, deploy, secrets, rollback, accounts | **Done** | [README.md](README.md) and [BUILDING.md](BUILDING.md); backend details in [supabase/README.md](supabase/README.md). |
 | Test and security reports linked, open items stated | **Done** | [TEST-PLAN.md](TEST-PLAN.md), [TEST-REPORT.md](TEST-REPORT.md), [SECURITY-REVIEW.md](SECURITY-REVIEW.md). |
-| Live release and verification evidence | **Ready** | CI [41730852766](https://github.com/hidezfzefz/LingoEnglish/actions/runs/41730852766); tag `v1.9`; release `https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9`; APK SHA-256 `1d37c06a…`; over-install evidence above. Final asset download verification is recorded after publication. |
+| Live release and verification evidence | **Done** | CI [41730852766](https://github.com/hidezfzefz/LingoEnglish/actions/runs/41730852766); tag `v1.9`; release `https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9`; downloaded asset hash, V2 signature, size, and version verified; over-install evidence above. |
 | User knows first-week checks and version 2 work | **Done** | Final handover below. |
 
 ## Open at launch

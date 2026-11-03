@@ -28,6 +28,7 @@ Final release artifact:
 | Version | `1.9` (`versionCode 10`), min SDK 26, target SDK 37 |
 | CI | Pass — [Content audit 41730852766](https://github.com/hidezfzefz/LingoEnglish/actions/runs/41730852766), 2026-11-03 |
 | Release | [v1.9](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9) |
+| Release asset | Downloaded from the v1.9 release; SHA-256, V2 certificate, size, and version match the tested APK |
 
 ## v1.9 changes under test
 
@@ -141,6 +142,6 @@ The launch and lesson-intro acceptance criteria pass on the physical phone, with
 accessibility variants covered on the emulator because the owner’s settings must not be
 changed. The final release APK is built, signed, installed over the phone’s debug build,
 and preserves the session and local progress. The two medium accepted risks remain the
-debug signing key (A-01) and the custom-scheme recovery link (A-02). CI is green on the
-release candidate (`94e4c78`); the tag and release assets are the remaining publication
-steps.
+debug signing key (A-01) and the custom-scheme recovery link (A-02). The release is
+published at [v1.9](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9); the
+downloaded asset’s SHA-256, V2 certificate, size, and version match the tested APK.

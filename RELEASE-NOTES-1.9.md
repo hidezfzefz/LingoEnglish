@@ -47,6 +47,7 @@ accounts, or learner-data fields.
 - Android lint: 0 errors.
 - Full launch, sting, tap-skip, reduced motion, 200% font, TalkBack semantics, lesson
   intro, chips, Begin routing, back/reopen, completed-lesson direct entry, offline launch,
-  and data-preserving over-install were exercised on the emulator and the physical phone.
+  and data-preserving over-install were exercised across the emulator and the physical
+  phone.
 - `gitleaks git` is clean; Semgrep reports only the expected exported launcher activity;
   the APK contains only the public Supabase anon JWT.
