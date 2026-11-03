@@ -81,6 +81,10 @@ import com.lingo.app.BuildConfig
 import com.lingo.app.data.CefrLevel
 import com.lingo.app.data.CallPhase
 import com.lingo.app.data.CallStore
+import com.lingo.app.data.CutsceneContent
+import com.lingo.app.data.CutscenePolicy
+import com.lingo.app.data.LaunchCutsceneMode
+import com.lingo.app.data.Lesson
 import com.lingo.app.data.LingoContent
 import com.lingo.app.data.PracticeMode
 import com.lingo.app.data.ProgressStore
@@ -121,6 +125,7 @@ fun LingoApp(
     var showLevelPath by rememberSaveable { mutableStateOf(false) }
     var testKindName by rememberSaveable { mutableStateOf<String?>(null) }
     var testTargetName by rememberSaveable { mutableStateOf<String?>(null) }
+    var introLessonId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val lesson = lessonId?.let { LingoContent.lessonById(it) }
     val quizMode = quizModeName?.let { name ->
@@ -133,6 +138,7 @@ fun LingoApp(
 
     fun clearOverlays() {
         lessonId = null
+        introLessonId = null
         quizModeName = null
         testKindName = null
         testTargetName = null
@@ -147,6 +153,57 @@ fun LingoApp(
     fun openTab(target: Tab) {
         clearOverlays()
         tabName = target.name
+    }
+
+    /**
+     * The single doorway into a lesson. Every surface (Home, Learn, Today's
+     * plan, the next-lesson card, and the completion screen) uses this so the
+     * one-time intro and the real first step cannot drift apart.
+     */
+    fun openLesson(target: Lesson) {
+        val showIntro = CutscenePolicy.shouldShowLessonIntro(
+            lessonId = target.id,
+            completedLessons = store.completedLessons,
+            seenIntros = store.lessonIntrosSeen,
+        )
+        if (showIntro) {
+            // Mark on entry, not on Begin: backing out of the intro must not
+            // make it replay the next time this lesson is opened.
+            store.markLessonIntroSeen(target.id)
+            introLessonId = target.id
+        } else {
+            introLessonId = null
+        }
+        lessonId = target.id
+    }
+
+    val currentVersion = BuildConfig.VERSION_CODE
+    val isRecoveryLink = recoveryIntent.isPasswordResetLink()
+    val launchMode = remember {
+        CutscenePolicy.launchMode(
+            seenVersion = store.launchCutsceneVersion,
+            currentVersion = currentVersion,
+            isDeepLink = isRecoveryLink,
+        )
+    }
+    var launchCutsceneDone by rememberSaveable {
+        mutableStateOf(launchMode == LaunchCutsceneMode.NONE)
+    }
+
+    fun finishLaunchCutscene() {
+        if (launchCutsceneDone) return
+        // A recovery link skipped the sequence, so it has not been seen. The
+        // next normal cold start should still get the full version.
+        if (launchMode != LaunchCutsceneMode.NONE) {
+            store.markLaunchCutsceneSeen(currentVersion)
+        }
+        launchCutsceneDone = true
+    }
+
+    LaunchedEffect(isRecoveryLink) {
+        // A reset link that arrives while the cutscene is already playing
+        // should not make the learner wait to reach the account screen.
+        if (isRecoveryLink) launchCutsceneDone = true
     }
 
     // The account gate is mandatory in a configured build. While the saved
@@ -201,12 +258,18 @@ fun LingoApp(
 
     val hasOverlay = lesson != null || quizMode != null || showFlashcards || showWordBank ||
         showRoleplay || showSentenceTiles || callStore.phase != CallPhase.IDLE || showLevelPath || testKind != null
-    BackHandler(enabled = !showEntryGate && (hasOverlay || tab != Tab.HOME)) {
+    BackHandler(enabled = !launchCutsceneDone) {
+        finishLaunchCutscene()
+    }
+    BackHandler(enabled = launchCutsceneDone && !showEntryGate && (hasOverlay || tab != Tab.HOME)) {
         when {
             testKind != null -> Unit
             callStore.phase != CallPhase.IDLE -> Unit
             showLevelPath -> showLevelPath = false
-            lesson != null -> lessonId = null
+            lesson != null -> {
+                lessonId = null
+                introLessonId = null
+            }
             quizMode != null -> quizModeName = null
             showFlashcards -> showFlashcards = false
             showWordBank -> showWordBank = false
@@ -217,6 +280,13 @@ fun LingoApp(
     }
 
     when {
+        !launchCutsceneDone -> {
+            LaunchCutscene(
+                mode = launchMode,
+                onFinished = { finishLaunchCutscene() },
+            )
+        }
+
         showEntryGate -> {
             FirstLoginScreen(
                 store = store,
@@ -258,23 +328,36 @@ fun LingoApp(
         lesson != null -> {
             val index = LingoContent.lessons.indexOfFirst { it.id == lesson.id }
             val next = LingoContent.lessons.getOrNull(index + 1)
-            key(lesson.id) {
-                LessonScreen(
+            if (introLessonId == lesson.id) {
+                LessonIntro(
                     lesson = lesson,
-                    store = store,
-                    speaker = speaker,
-                    nextLesson = next,
-                    onClose = { lessonId = null },
-                    onBackToPath = {
-                        lessonId = null
-                        tabName = Tab.LEARN.name
-                    },
-                    onNextLesson = { nextLesson -> lessonId = nextLesson.id },
-                    onPracticeMore = {
-                        lessonId = null
-                        tabName = Tab.PRACTICE.name
-                    },
+                    spark = CutsceneContent.sparkFor(lesson.id),
+                    onBegin = { introLessonId = null },
                 )
+            } else {
+                key(lesson.id) {
+                    LessonScreen(
+                        lesson = lesson,
+                        store = store,
+                        speaker = speaker,
+                        nextLesson = next,
+                        onClose = {
+                            lessonId = null
+                            introLessonId = null
+                        },
+                        onBackToPath = {
+                            lessonId = null
+                            introLessonId = null
+                            tabName = Tab.LEARN.name
+                        },
+                        onNextLesson = { nextLesson -> openLesson(nextLesson) },
+                        onPracticeMore = {
+                            lessonId = null
+                            introLessonId = null
+                            tabName = Tab.PRACTICE.name
+                        },
+                    )
+                }
             }
         }
 
@@ -346,7 +429,7 @@ fun LingoApp(
                         Tab.HOME -> HomeScreen(
                             store = store,
                             speaker = speaker,
-                            onOpenLesson = { lessonId = it.id },
+                            onOpenLesson = { openLesson(it) },
                             onOpenLearn = { tabName = Tab.LEARN.name },
                             onOpenPractice = { tabName = Tab.PRACTICE.name },
                             onOpenQuiz = { quizModeName = it.name },
@@ -359,7 +442,7 @@ fun LingoApp(
 
                         Tab.LEARN -> LearnScreen(
                             store = store,
-                            onOpenLesson = { lessonId = it.id },
+                            onOpenLesson = { openLesson(it) },
                         )
 
                         Tab.PRACTICE -> PracticeScreen(
@@ -466,6 +549,12 @@ private fun LingoBottomBar(
         }
     }
 }
+
+private fun Intent?.isPasswordResetLink(): Boolean =
+    this?.data?.let { data ->
+        data.scheme.equals("lingo", ignoreCase = true) &&
+            data.host.equals("reset-password", ignoreCase = true)
+    } == true
 
 class Speaker(
     val speak: (String) -> Unit,

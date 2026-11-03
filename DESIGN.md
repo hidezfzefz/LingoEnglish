@@ -1,8 +1,8 @@
-# Lingo English v1.8: design
+# Lingo English v1.9: design
 
 ## Direction
 
-**Warm editorial, calm momentum.** Lingo is a daily language ritual, not a arcade. The existing identity already carries that: cream paper, deep forest ink, a fresh lime accent, a literary serif for big statements, and hand-drawn stickers for warmth. v1.8 keeps it and tightens the craft instead of rebranding.
+**Warm editorial, calm momentum.** Lingo is a daily language ritual, not an arcade. The existing identity already carries that: cream paper, deep forest ink, a fresh lime accent, a literary serif for big statements, and hand-drawn stickers for warmth. v1.9 keeps it and adds two quiet branded moments — a launch sequence and a lesson-entry welcome — without changing the palette, type, or navigation.
 
 Borrowed from references:
 - **Aesop** — one idea per section, generous vertical rhythm, and copy that feels written rather than generated.
@@ -78,6 +78,14 @@ Screen gutter 20 dp. Card padding 20–24 dp. Section gap 22–24 dp. Minimum to
 
 `LingoMotion`: `quick` 150 ms, `standard` 240 ms, `expressive` 600 ms, `celebration` 800 ms. Motion shows cause and effect (answer feedback, progress fill, sheet open), never decoration. Compose respects the system animation scale; no custom infinite motion on the Home path.
 
+### Launch and lesson-entry motion
+
+- **Full launch:** 3.2 s. The forest `L` mark draws in over a cream field, a lime path line grows beneath it, and the line “A little English, every day.” settles in. One full sequence per app version, before the sign-in gate.
+- **Sting:** 1.2 s. Compact mark and one line on every later cold start. It is a reminder of the brand, not a second onboarding.
+- **Escape:** tapping anywhere or the 48 dp **Skip intro** button ends either sequence immediately. Password-recovery links skip the launch entirely and do not mark the version as seen.
+- **Reduced motion:** when system animators are disabled, the completed frame is shown still for 1.1 s (full) or 0.5 s (sting), then the app advances. No essential information depends on movement.
+- **Lesson intro:** a static, scrollable screen, not a timed interstitial. It previews the real first step and never auto-advances; **Begin first step** opens the lesson in one tap. The intro is marked seen on entry, so backing out does not replay it.
+
 ## Core components
 
 | Component | Spec | States |
@@ -92,6 +100,10 @@ Screen gutter 20 dp. Card padding 20–24 dp. Section gap 22–24 dp. Minimum to
 | `GoalRing` | 86–88 dp, 7 dp stroke, lime on forest | animated, complete |
 | **New** `NextStepCard` | Mint surface, 26 dp radius, sticker, title, one line, arrow action | weekly, exam, practice |
 | **New** reminder row | 48 dp row, bell sticker, title + time, Material 3 switch | off, on, blocked |
+| **New** `LaunchCutscene` | Full-bleed cream field, forest mark, lime path, serif display line; tap-to-skip + 48 dp text action | full, sting, reduced motion |
+| **New** `LessonIntro` | Scrollable cream screen: lesson sticker/title, three-step path, first-step preview, creative spark, lime Begin button | new lesson, seen, completed |
+| **New** `PathPill` | 1/2/3 step pills; side by side at normal font, stacked full-width at `fontScale >= 1.5` | active, upcoming |
+| **New** `SparkChip` | Rounded outline chip; tap reveals a short example; selected state is local only | unselected, selected |
 
 ## Key screens
 
@@ -124,6 +136,56 @@ Screen gutter 20 dp. Card padding 20–24 dp. Section gap 22–24 dp. Minimum to
 
 Decision: the lesson hero is already the recommendation when the next action is a lesson. The extra card appears only when the state calls for a weekly test, an exam, or free practice, so there are never two competing lesson CTAs. It hides when the daily goal is complete.
 
+### Launch cutscene (first start of each version, then a sting)
+
+```
+┌────────────────────────────────────┐
+│                         Skip intro │
+│                                    │
+│               [ L ]                │
+│          ╭──────────────╮          │
+│          │  lime path   │          │
+│          ╰──────────────╯          │
+│                                    │
+│        A little English,           │
+│           every day.               │
+│   Warm up. Say it. Make it yours.  │
+└────────────────────────────────────┘
+```
+
+The full frame is deliberately sparse: one mark, one path, one line. The sting
+reuses the same composition at a smaller scale and drops the supporting line.
+Nothing here reads learner data or touches the network.
+
+### Lesson intro (once per not-yet-completed lesson)
+
+```
+A NEW LESSON                    Skip intro
+Take it one step at a time.
+
+[sticker]  Lesson title
+           Lesson subtitle
+
+( 1 First step ) ( 2 Practise ) ( 3 Finish )
+
+┌ FIRST STEP ────────────────────────┐
+│ The real first-step title          │
+│ A short preview of what happens    │
+└────────────────────────────────────┘
+
+A CREATIVE SPARK
+What is one small detail that makes a hotel feel welcoming?
+[ A useful fact ] [ A local tip ] [ A kind question ]
+“Breakfast is on the second floor until ten.”
+
+[ Begin first step → ]
+You can leave and come back any time.
+```
+
+The intro is a preview, not a gate. It has no timer, no answer field, and no
+new persisted data beyond the “seen” marker. At 200% font the three path pills
+stack vertically and the whole screen scrolls; the Begin action stays reachable.
+
 ### Settings (reminder section inserted)
 
 ```
@@ -141,7 +203,7 @@ REMINDERS
 Pronunciation
 Reset progress
 Lingo · English, every day
-Version 1.8
+Version 1.9
 ```
 
 If Android blocks notifications, the row stays visible but the switch returns off and a short inline panel says: “Notifications are blocked. Open system settings to allow them.” with one action. The learner can always keep using Lingo without reminders.
@@ -168,10 +230,12 @@ No name, email, level, or call details. Tap opens the Practice tab; if signed ou
 
 - 1080×2340 phone: 20 dp gutters, no horizontal scroll, bottom nav unobscured.
 - 200% font scale: hero title wraps without clipping; buttons grow or wrap; no fixed-height text containers.
-- Landscape: Home scrolls; hero ring and copy stay side by side only when width allows.
-- TalkBack: logo, settings, stickers, switches, and cards have meaningful labels; section titles are headings.
-- Contrast: `Muted` and `CoralDeep` token changes bring body and coral text above 4.5:1.
+- 200% font on the lesson intro: the three path pills stack, the creative chips wrap, and Begin remains reachable by scrolling.
+- Landscape: Home and the lesson intro scroll; hero ring and copy stay side by side only when width allows.
+- Reduced motion: the launch shows a still completed frame and advances; the lesson intro has no entrance animation that hides content.
+- TalkBack: logo, settings, stickers, switches, cards, skip actions, and idea chips have meaningful labels; section titles and the lesson title are headings.
+- Contrast: `Muted` and `CoralDeep` token changes bring body and coral text above 4.5:1; cutscene text uses the same tokens.
 
 ## Approval note
 
-The user dismissed the discovery option card and asked to continue, so the recommended direction above is adopted: keep the Lingo identity, refine it, and add only the reminder and recommendation surfaces. No rebrand, no dark mode, no new font.
+The user dismissed the discovery option card and asked to continue, so the recommended direction above is adopted: keep the Lingo identity, refine it, and add only the reminder, recommendation, launch, and lesson-entry surfaces. v1.9 adds brand moments, not a rebrand: no dark mode, no new font, no change to the warm paper/forest palette.

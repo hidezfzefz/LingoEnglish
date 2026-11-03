@@ -1,4 +1,7 @@
-# Lingo English v1.8: brief
+# Lingo English v1.8: brief (historical)
+
+> This is the v1.8 planning brief, retained for project history. The current release is
+> v1.9; see `README.md` and `RELEASE-NOTES-1.9.md`.
 
 **What it is:** An Android app that takes learners from A1 to confident, practical English through short lessons, creative production tasks, level exams, weekly tests, and live voice calls with matched learners.
 

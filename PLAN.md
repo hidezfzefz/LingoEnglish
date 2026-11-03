@@ -1,4 +1,7 @@
-# Lingo English v1.8: build plan
+# Lingo English v1.8: build plan (historical)
+
+> This is the v1.8 build plan, retained for project history. The current release is
+> v1.9; see `README.md` and `RELEASE-NOTES-1.9.md`.
 
 ## Architecture
 

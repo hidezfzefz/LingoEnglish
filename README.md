@@ -11,42 +11,47 @@ creative, high-stakes conversations.
 
 Install the latest APK from the
 [Releases page](https://github.com/hidezfzefz/LingoEnglish/releases/latest).
-The current build is [Lingo English 1.8](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.8).
+The current build is [Lingo English 1.9](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9).
 Android 8.0 (API 26) or newer is required.
 
 ```bash
-adb install -r LingoEnglish-1.8.apk
+adb install -r LingoEnglish-1.9.apk
 ```
 
-That release publishes `LingoEnglish-1.8.apk` and
-`LingoEnglish-1.8.apk.sha256`. Verify the download before installing:
+That release publishes `LingoEnglish-1.9.apk` and
+`LingoEnglish-1.9.apk.sha256`. Verify the download before installing:
 
 ```bash
-sha256sum -c LingoEnglish-1.8.apk.sha256
+sha256sum -c LingoEnglish-1.9.apk.sha256
 ```
 
-The v1.8 APK SHA-256 is
-`0394199900e79bf2ebdf744c72725bf0334a8be73efde7235a31eac89d7b39b7`
-(72,948,079 bytes).
+The v1.9 APK SHA-256 is
+`1d37c06a82d8f8ecb54e3e5ac9ff650929567d9bee63a4f759fb2764552cbaec`
+(72,997,289 bytes).
 
 The published APK is a sideload preview signed with the project's debug key.
 Keep that in mind if you plan to publish on Google Play: use your own release
 keystore and keep it out of version control.
 
-## What's new in 1.8
+## What's new in 1.9
 
-- Opt-in daily practice reminders with an in-app time picker and clear
-  guidance if Android blocks notifications.
-- A conditional “recommended next” card on Home for weekly tests, level exams,
-  and free practice.
-- WCAG AA secondary text, labelled icon controls, 48 dp touch targets, larger
-  TimePicker-ready settings, and a scrollable settings sheet.
-- Duplicate-submit guards for sign-in, sign-up, password reset, and friend
-  calls, plus rescheduling after reboot, clock changes, and app updates.
-- Keystore-backed session storage and least-privilege Supabase access: the app
-  reads through RLS and writes only through validated RPCs.
-- Version 1.8 (versionCode 9) installs directly over 1.7 without clearing
-  local progress.
+- A branded 3.2-second launch sequence on the first cold start after install or
+  update, then a 1.2-second logo-and-path sting on later cold starts. Tap
+  anywhere or use **Skip intro**; reduced-motion mode shows a still frame and
+  moves on quickly.
+- A once-per-lesson intro for lessons you have not completed. It previews the
+  real first step and offers a lesson-specific creative prompt with two or
+  three tappable idea chips. The chips reveal short examples only — there is no
+  typing and no new saved learner data.
+- Replay rules that respect the learner: the full launch appears once per app
+  version, the lesson intro is marked seen on entry so backing out never
+  replays it, completed lessons open directly, and password-recovery links skip
+  the launch sequence.
+- Version 1.9 (versionCode 10) installs directly over 1.8 without clearing the
+  signed-in session, XP, level, completed lessons, writing drafts, reminders,
+  or daily goal. Every v1.8 feature is retained.
+
+The full release notes are in [RELEASE-NOTES-1.9.md](RELEASE-NOTES-1.9.md).
 
 ## What is inside
 
@@ -82,9 +87,18 @@ keystore and keep it out of version control.
   weekly scores are stored on the device. Creative writing is saved as a draft
   while the learner types, and account tokens are excluded from Android
   backups.
+- **A warm welcome, once**: a local, silent launch cutscene introduces the
+  forest-and-paper identity on the first start of each app version; later starts
+  get a short sting. It runs before the sign-in gate, is always skippable, and
+  respects the system animation setting.
+- **A thoughtful lesson entry**: every not-yet-completed lesson opens with a
+  one-screen preview of its first step and a lesson-specific creative question.
+  Idea chips offer examples, not answers; they are local UI state and are never
+  saved.
 - **Accessibility and reliability**: secondary text meets WCAG AA contrast,
-  icon-only controls have labels and 48 dp touch targets, sign-in and call
-  actions cannot double-submit, and every network action keeps its retry path.
+  icon-only controls have labels and 48 dp touch targets, launch and lesson
+  intros expose TalkBack labels and skip actions, sign-in and call actions
+  cannot double-submit, and every network action keeps its retry path.
 
 ## Creative learning
 
@@ -99,7 +113,9 @@ The newer lessons deliberately move beyond recognition:
 | Think on Your Feet | Buying time, structured thinking, and curious disagreement |
 
 Every original lesson also ends with a short production task, so the learner
-has to use the language rather than only choose an option.
+has to use the language rather than only choose an option. v1.9 adds a
+lesson-specific creative spark to the entry intro for all 20 lessons; the
+prompts and chips are bundled with the app and never sent to a server.
 
 ## Build from source
 
@@ -138,7 +154,7 @@ app/build/outputs/apk/release/app-release.apk
 See [BUILDING.md](BUILDING.md) for the low-resource Gradle settings,
 [supabase/README.md](supabase/README.md) for backend deployment, auth,
 password recovery, LiveKit, and SMTP setup, and
-[SECURITY-REVIEW.md](SECURITY-REVIEW.md) for the v1.8 security review.
+[SECURITY-REVIEW.md](SECURITY-REVIEW.md) for the v1.9 security review.
 
 ## Release and rollback
 
@@ -155,12 +171,12 @@ password recovery, LiveKit, and SMTP setup, and
    A downgrade is only safe when the old version accepts the current local data;
    otherwise restore a device backup.
 
-Release builds use the project debug key for v1.8 so existing installs can
+Release builds use the project debug key for v1.9 so existing installs can
 update in place. That is an accepted sideload risk, documented as A-01 in
 [SECURITY-REVIEW.md](SECURITY-REVIEW.md); use a dedicated release keystore
 before any store distribution.
 
-The v1.8 launch evidence is in [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md),
+The v1.9 launch evidence is in [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md),
 [TEST-PLAN.md](TEST-PLAN.md), and [TEST-REPORT.md](TEST-REPORT.md). Data handling
 is described in [PRIVACY.md](PRIVACY.md).
 
@@ -190,6 +206,13 @@ Run the reminder and Home-recommendation tests with:
 ./gradlew --stop
 ```
 
+Run the v1.9 launch and lesson-intro tests with:
+
+```bash
+./gradlew :app:testDebugUnitTest --tests 'com.lingo.app.CutscenePolicyTest' --tests 'com.lingo.app.CutsceneContentTest' --console=plain
+./gradlew --stop
+```
+
 CI runs the same audit on every push and pull request. It verifies:
 
 - unique lesson and exercise IDs;
@@ -198,11 +221,14 @@ CI runs the same audit on every push and pull request. It verifies:
 - 300 randomized weekly selections per level, with 10 unique,
   skill-balanced questions in every selection;
 - shuffling never changes the correct answer;
-- a word target, success criteria, and model answer for every creative task.
+- a word target, success criteria, and model answer for every creative task;
+- a launch-cutscene rule for fresh installs, updates, later cold starts, and
+  recovery links;
+- a creative spark with two or three usable chips for every lesson.
 
 On-device smoke tests cover the login gate, password recovery, lessons,
 creative writing, weekly tests, live calls, and data-preserving upgrades. The
-full v1.8 matrix and evidence are in [TEST-PLAN.md](TEST-PLAN.md) and
+full v1.9 matrix and evidence are in [TEST-PLAN.md](TEST-PLAN.md) and
 [TEST-REPORT.md](TEST-REPORT.md).
 
 ## Privacy

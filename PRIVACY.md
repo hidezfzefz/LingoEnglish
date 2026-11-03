@@ -1,6 +1,6 @@
-# Privacy — Lingo English 1.8
+# Privacy — Lingo English 1.9
 
-Last updated: 2026-10-26
+Last updated: 2026-11-03
 
 Lingo is an open-source Android app for learning English. This note explains
 what the app stores, what leaves the phone, and how to ask for deletion. It
@@ -11,6 +11,8 @@ policy.
 
 - Lessons completed, XP, streak, active days, CEFR level, weekly scores,
   saved words, sticker choices and creative-writing drafts.
+- One-time launch and lesson-intro markers (an app version code and lesson IDs),
+  so the cutscene and intro are not repeated.
 - Your daily goal and reminder time. Reminders are local Android alarms and
   never send data to a server.
 - Your Supabase session token, encrypted with an Android Keystore-backed key.
@@ -46,6 +48,8 @@ privacy terms apply to the relay service.
 - No access to contacts, photos, files, location, camera or screen capture.
 - No background reading of your microphone.
 - No email marketing.
+- No network call, sound, or new learner-data field from the launch cutscene or
+  lesson intro. The creative prompt chips are bundled text and are not saved.
 
 ## Retention and deletion
 

@@ -1,17 +1,21 @@
-# Test plan — Lingo English 1.8
+# Test plan — Lingo English 1.9
 
-Build under test: `1.8` (`versionCode 9`), release APK signed with the debug key.  
+Build under test: `1.9` (`versionCode 10`), release APK signed with the debug key.  
 Platform: Android (the project decision is Android-only; iOS is out of scope).  
-Test window: 2026-10-26.
+Test window: 2026-11-01.
 
 ## 1. Scope
 
-This plan proves the v1.8 app works end to end on real Android runtimes, including the
-new reminders and Home recommendation, the existing lesson/test/call features, and the
-security changes from stage 6. It covers:
+This plan proves the v1.9 app works end to end on real Android runtimes, including the
+new launch cutscene and once-per-lesson intro, the preserved v1.8 features, and the
+security posture of the release APK. It covers:
 
 - every screen and tab, including login, Home, Learn, Practice, Call, Progress, Settings,
   all lesson types, weekly tests, level exams, and the call flow;
+- the full launch cutscene on first start after install/update, the short sting on later
+  cold starts, tap/Skip escape, recovery-link bypass, and reduced-motion behaviour;
+- the once-per-lesson intro, its first-step preview, creative chips, Begin routing,
+  back-out/reopen replay rules, and completed-lesson direct entry;
 - small, medium, and large phone layouts in portrait and landscape;
 - notification and microphone permission prompts, including denial and recovery;
 - offline launch, offline navigation, and recovery after the network returns;
@@ -29,18 +33,22 @@ through the app.
 
 | ID | Device / runtime | Screen | Density | Notes |
 | --- | --- | --- | --- | --- |
-| E1 | Android 17 / API 37 emulator, 1080×2400 | 411×914 dp | 420 dpi | Primary full-journey device |
-| E2 | Same emulator, 720×1280 | 360×640 dp | 320 dpi | Small-phone layout |
-| E3 | Same emulator, 1440×3000 | 480×1000 dp | 480 dpi | Large-phone layout |
-| E4 | Same emulator, portrait rotated to landscape | 914×411 dp | 420 dpi | Rotation survival |
-| E5 | Physical Android phone, 1080×2340 | 360×780 dp | 384 dpi override | Only if the device is connected; display state must not be changed |
-| E6 | Android 8 / API 26 | — | — | `minSdk` target; no API 26 system image available, so runtime coverage is API 37 only |
+| E1 | Android 17 / API 37 emulator, 1080×2400 | 411×914 dp | 420 dpi | Earlier v1.9 full-journey and accessibility pass |
+| E2 | Same emulator, 720×1280 | 360×640 dp | 320 dpi | Small-phone layout (earlier pass) |
+| E3 | Same emulator, 1440×3000 | 480×1000 dp | 480 dpi | Large-phone layout (earlier pass) |
+| E4 | Same emulator, portrait rotated to landscape | 914×411 dp | 420 dpi | Rotation survival (earlier pass) |
+| E5 | Physical Samsung SM-A546E, Android 16 / API 36, 1080×2340 | 360×780 dp | 384 dpi override | Primary v1.9 device; display and font settings must not be changed |
+| E6 | Android 8 / API 26 | — | — | `minSdk` target; no API 26 system image available, so runtime coverage is API 36/37 only |
 
-Font scale: 1.0 for the main pass, 1.3 and 2.0 for the accessibility pass.  
+Font scale: 1.0 on the physical phone; 1.3 and 2.0 on the emulator for the accessibility
+pass. The phone’s font scale, display size, density, and rotation are not changed.  
 Theme: light only (the app intentionally has no dark mode).  
 Locale: English. Network: normal, then offline, then restored.
 
-The display settings of the physical phone must never be changed to run E5.
+The physical phone is the remaining v1.9 QA device. The emulator is stopped and is not
+used for the remaining device checks; its earlier v1.9 results are retained only for the
+settings that cannot be changed on the owner’s phone (font scale, reduced motion,
+TalkBack).
 
 ### Test accounts
 
@@ -53,16 +61,23 @@ The display settings of the physical phone must never be changed to run E5.
 
 Each journey lists the happy path, the edge cases to try, and what “correct” means.
 
-### J1 — First launch and login gate
+### J1 — First launch, cutscene, and login gate
 
 1. Clear app data and launch.
-2. Confirm the greeting gate appears before any tab content.
-3. Submit empty fields, an invalid email, and a wrong password.
-4. Tap Sign in repeatedly while a request is in flight.
+2. Confirm the full branded cutscene appears before the sign-in gate, then reaches the
+   gate in under 5 seconds or ends immediately on a tap / **Skip intro**.
+3. Confirm the greeting gate appears before any tab content.
+4. Submit empty fields, an invalid email, and a wrong password.
+5. Tap Sign in repeatedly while a request is in flight.
+6. Force-stop and relaunch: confirm the short sting, not the full sequence, and that the
+   launch marker is already stored.
 
-Edge cases: offline sign-in, unknown email, password with spaces, keyboard covering the
-button, back button on the gate.  
-Correct: no tab content is reachable signed out; errors are specific but do not reveal
+Edge cases: offline launch, unknown email, password with spaces, keyboard covering the
+button, back button on the gate, recovery link while the cutscene is playing, system
+animations disabled.  
+Correct: no tab content is reachable signed out; the full sequence appears once per app
+version; later cold starts get the sting; tap/Skip always escapes; a recovery link skips
+the launch and does not mark the version seen; errors are specific but do not reveal
 whether an email exists; only one request runs; the button shows a busy state.
 
 ### J2 — Sign up
@@ -97,18 +112,30 @@ Edge cases: zero XP, completed daily goal, offline, process restart.
 Correct: only one recommendation appears; dates/streaks are correct; the card is not
 duplicated by the hero.
 
-### J5 — Lessons and creative tasks
+### J5 — Lessons, entry intro, and creative tasks
 
-1. Open a lesson from Learn.
-2. Move through teaching slides, a multiple-choice exercise, a listening exercise, a
+1. Open a not-yet-completed lesson from Learn.
+2. Confirm the once-per-lesson intro shows the lesson title, the three-step path, a
+   preview of the real first step, and a lesson-specific creative prompt with two or
+   three idea chips.
+3. Tap a chip and confirm it reveals a short example; tap it again to collapse. Confirm
+   nothing is typed or saved.
+4. Tap **Begin first step** and confirm the real lesson opens at step 1 with the same
+   first-step title shown in the preview, within 5 seconds.
+5. Back out of a different lesson intro, reopen that lesson, and confirm the intro does
+   not replay. Open a completed lesson and confirm it goes straight to the lesson.
+6. Move through teaching slides, a multiple-choice exercise, a listening exercise, a
    word-tile exercise, and the creative task.
-3. Submit a creative answer below and above the word target.
-4. Finish the lesson and return to Home.
+7. Submit a creative answer below and above the word target.
+8. Finish the lesson and return to Home.
 
-Edge cases: back mid-lesson, rotate mid-exercise, background/foreground, duplicate
-Finish taps, no TTS voice installed.  
-Correct: answers are graded correctly, the explanation appears, drafts survive
-rotation, XP is awarded once, and the next lesson unlocks per the CEFR gates.
+Edge cases: back mid-lesson, back from the intro, reopen after process death, rotate
+mid-exercise, background/foreground, duplicate Finish taps, no TTS voice installed.  
+Correct: the intro appears once for each not-yet-completed lesson, is marked seen on
+entry, and never replays after backing out; completed lessons skip it; Begin opens the
+real first step in one tap; chips are local UI state; answers are graded correctly, the
+explanation appears, drafts survive rotation, XP is awarded once, and the next lesson
+unlocks per the CEFR gates.
 
 ### J6 — Weekly test
 
@@ -211,14 +238,18 @@ and sign-out clears the session.
 
 ### J14 — Offline and recovery
 
-1. Launch offline with an existing session.
+1. Launch offline with an existing session; confirm the sting/full cutscene still
+   completes without a network and reaches Home in under 5 seconds.
 2. Navigate Home, Learn, Practice, Progress.
-3. Attempt sign-in, leaderboard refresh, matching, and a friend call.
-4. Restore the network and retry.
+3. Open a lesson intro offline; confirm the first-step preview and creative chips still
+   work because they are bundled locally.
+4. Attempt sign-in, leaderboard refresh, matching, and a friend call.
+5. Restore the network and retry.
 
 Edge cases: airplane mode, DNS failure, slow network, network loss mid-request.  
-Correct: local lessons and progress still work; network surfaces show a retry; no
-spinner is left forever; retry succeeds after the network returns.
+Correct: the launch sequence is local and never waits for a network; local lessons,
+intros, and progress still work; network surfaces show a retry; no spinner is left
+forever; retry succeeds after the network returns.
 
 ### J15 — Permission prompts
 
@@ -233,13 +264,16 @@ loop the prompt.
 
 ### J16 — Data preservation and upgrade
 
-1. Record XP, streak, completed lessons, and a writing draft.
-2. Install the release APK over the previous build with `adb install -r`.
-3. Launch and compare all values.
-4. Force-stop, reboot the emulator, and compare again.
+1. Record XP, streak, completed lessons, writing draft, reminder, and daily goal.
+2. Install the v1.9 release APK over the v1.8 build with `adb install -r`.
+3. Launch and confirm the full cutscene appears once for the new version, then compare
+   all values.
+4. Force-stop and relaunch; confirm the sting appears and the values are unchanged.
+5. Confirm no test-only intro markers remain if the phone was used for QA.
 
-Correct: local progress and the encrypted session survive, the legacy session key is
-gone, and no re-login is required after an over-install.
+Correct: local progress, the encrypted session, reminder, and daily goal survive; the
+full cutscene appears once for the update; later starts get the sting; no re-login or
+data clear is required; the phone’s display and font settings are untouched.
 
 ### J17 — Accessibility
 
@@ -249,8 +283,13 @@ gone, and no re-login is required after an over-install.
 - Text contrast at WCAG AA for normal and secondary text.
 - Font scale 1.3 and 2.0: no clipped labels, no overlapping controls, settings sheet
   scrolls, and all actions remain reachable.
-- Reduced motion: transitions do not block input; no essential information is conveyed
-  by colour alone.
+- Reduced motion: the launch shows a still completed frame and advances; the lesson
+  intro has no entrance animation that hides content; transitions do not block input.
+- Launch cutscene: tap anywhere and the 48 dp **Skip intro** action both work; TalkBack
+  reaches the skip action; no essential information is conveyed by motion or colour.
+- Lesson intro: the lesson title is a heading, each idea chip has a content description,
+  the selected chip is exposed, and Begin is reachable at 200% font after scrolling.
+- No essential information is conveyed by colour alone.
 
 ### J18 — Responsive layouts
 
@@ -266,17 +305,54 @@ gone, and no re-login is required after an over-install.
 - No service-role, LiveKit, or SMTP secret is visible in the APK.
 - Direct table writes are rejected; RPCs work (covered in `SECURITY-REVIEW.md`).
 
+### J20 — Launch cutscene policy
+
+1. Fresh install or version change: confirm the full 3.2-second sequence appears once,
+   before the sign-in gate or Home.
+2. Tap anywhere during the full sequence and confirm it ends immediately and stores the
+   current version as seen.
+3. Force-stop and relaunch: confirm the 1.2-second sting, not the full sequence.
+4. Open a password-recovery link: confirm the launch is skipped and the version is not
+   marked seen, so the next normal cold start still gets the full sequence.
+5. Enable reduced motion: confirm the full sequence shows a still frame for about 1.1 s
+   and the sting for about 0.5 s, then advances without blocking input.
+6. Launch offline: confirm the sequence still completes and reaches Home.
+
+Edge cases: back during the launch, tap during the sting, process death during the
+sequence, update over an existing install, 200% font.  
+Correct: full once per version; sting on later starts; tap/Skip escape; recovery links
+bypass without consuming the full sequence; reduced motion and offline both work; no
+network, sound, permission, or learner data is used.
+
+### J21 — Lesson intro replay rules
+
+1. Open a not-yet-completed lesson from each entry point: Home, Learn, Today’s plan,
+   next lesson, and the completion screen.
+2. Confirm each opens the intro with the correct lesson content and first-step preview.
+3. Back out of the intro, reopen the same lesson, and confirm it opens directly to the
+   lesson with no intro.
+4. Complete a lesson, reopen it, and confirm it opens directly.
+5. Kill the process between the intro and Begin, relaunch, and reopen the lesson.
+6. Tap a creative chip, confirm the example appears, then tap Begin; confirm no chip
+   selection or example text is persisted.
+
+Edge cases: completed lesson, intro seen but lesson not completed, process death, back
+from intro, 200% font, TalkBack.  
+Correct: one intro per not-yet-completed lesson; marked seen on entry; no replay after
+backing out; completed lessons always direct; all entry points use the same wrapper;
+chips are ephemeral local UI state.
+
 ## 4. How each layer is tested
 
 | Layer | Tool / method |
 | --- | --- |
-| Unit logic | Gradle `:app:testDebugUnitTest` — content audit, reminder schedule, next-step selection |
+| Unit logic | Gradle `:app:testDebugUnitTest` — content audit, reminder schedule, next-step selection, cutscene policy, lesson sparks |
 | API / RLS | Supabase REST integration test with a temporary user; direct writes must return 403/42501 |
-| End-to-end UI | Release APK on the emulator, driven with `adb`/UIAutomator; screenshots at each journey |
-| Accessibility | Android lint accessibility checks, UIAutomator semantics, manual TalkBack/font-scale pass |
+| End-to-end UI | Release APK on the physical Samsung phone, driven with `adb`/UIAutomator; earlier emulator screenshots retained for settings that cannot be changed |
+| Accessibility | Android lint accessibility checks, UIAutomator semantics, earlier emulator TalkBack/font-scale pass |
 | Performance | `adb shell am start -W` cold start, frame statistics, APK size; no web Core Web Vitals |
-| Responsive | `wm size`/`wm density` overrides on the emulator, restored afterwards |
-| Offline | Emulator airplane mode / Wi-Fi off, then restore |
+| Responsive | `wm size`/`wm density` overrides on the emulator (earlier pass), restored afterwards; phone display untouched |
+| Offline | Phone airplane mode, then restore |
 | Data preservation | `adb install -r` over the prior build, then compare on-device values |
 | Security | Gitleaks, OSV, Semgrep, APK scan, live ACL query (see `SECURITY-REVIEW.md`) |
 
@@ -295,10 +371,12 @@ gone, and no re-login is required after an over-install.
 - invalid email, wrong password, duplicate sign-up, short password;
 - empty answer, wrong answer, unanswered weekly question;
 - double-tap Sign in, Create, Begin, Submit, Finish, Find partner, End call;
+- tap-to-skip and Skip-intro on both launch modes; back during the launch;
+- back from a lesson intro, reopen the same lesson, and open a completed lesson;
 - back/leave during a lesson, test, exam, ringing call, and active call;
 - rotate during an exercise, a timed test, and a call;
 - notification denied, microphone denied, microphone revoked mid-call;
-- offline launch, offline leaderboard, offline matching, network restored;
+- offline launch, offline lesson intro, offline leaderboard, offline matching, network restored;
 - wrong friend code, own friend code, offline friend, busy friend, blocked pair;
 - expired recovery link and reused recovery link;
 - process death/relaunch with an active session;
@@ -306,18 +384,22 @@ gone, and no re-login is required after an over-install.
 
 ## 6. Entry and exit criteria
 
-Entry: release APK builds, unit tests and lint pass, security stage is closed, test
-accounts are available, and the emulator is healthy.
+Entry: release APK builds, unit tests and lint pass, security stage is closed, the
+physical phone is unlocked and connected, and the owner’s session is preserved.
 
-Exit: every journey above passes on E1 and the layout pass passes on E2/E3/E4; no serious
-accessibility violation; no unresolved crash, ANR, data loss, or security regression;
-`TEST-REPORT.md` records the results, failures fixed, and anything still open.
+Exit: every v1.9-specific journey passes on the physical phone; the earlier emulator
+accessibility/layout pass is recorded; no serious accessibility violation; no unresolved
+crash, ANR, data loss, or security regression; `TEST-REPORT.md` records the results,
+failures fixed, and anything still open.
 
 ## 7. Out of scope and known limits
 
 - iOS: the project is Android-only.
 - Two-phone live-audio quality: requires two physical phones and a quiet audio path.
-- Fully signed-out testing on the physical phone: requires the device to be connected.
+- Fully signed-out testing on the physical phone: the owner stays signed in; the
+  signed-out gate is covered on the emulator and by code review.
+- Physical-phone font scale, reduced motion, and TalkBack: the owner’s display and
+  accessibility settings must not be changed; these were covered on the emulator.
 - API 26 runtime: no API 26 system image is installed; `minSdk` is verified by build and
   lint, not by running on Android 8.
 - Payments, file uploads, web admin, and browser performance: not part of this app.

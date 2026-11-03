@@ -1,9 +1,9 @@
-# Launch checklist — Lingo English 1.8
+# Launch checklist — Lingo English 1.9
 
-- Reviewed: 2026-10-26
-- Release: `1.8` (`versionCode 9`), APK signed with the project debug key
+- Reviewed: 2026-11-03
+- Release: `1.9` (`versionCode 10`), APK signed with the project debug key
 - Distribution: public GitHub Release, sideloaded APK (no Play Store listing)
-- Status: **shipped** — [v1.8 release](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.8)
+- Status: **ready for publication** — final commit, CI, tag, and release assets pending
 
 This checklist is adapted from `convio/launch-checklist` for an Android app.
 Web-only items are marked **N/A** with the reason, rather than left implicit.
@@ -12,10 +12,10 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
 
 | Item | Status | Evidence / notes |
 | --- | --- | --- |
-| Production build passes with understood warnings | **Done** | `:app:testDebugUnitTest` 17/17; `:app:lintDebug` 0 errors, 39 non-blocking warnings; [CI run 40412239645](https://github.com/hidezfzefz/LingoEnglish/actions/runs/40412239645) passed on `67ae40b`. Release APK `03941999…`. |
-| Live release published and smoke-tested | **Done** | Tag `v1.8` → `67ae40b`. The APK was downloaded from the release over HTTPS, its SHA-256 and V2 signer matched, and it installed over the existing builds on the emulator and on the physical Samsung SM-A546E with session and progress preserved. |
+| Production build passes with understood warnings | **Done** | `:app:testDebugUnitTest` 28/28; `:app:lintDebug` 0 errors, 42 non-blocking warnings; release APK `1d37c06a…`, 72,997,289 bytes. |
+| Live release published and smoke-tested | **Pending** | Final commit and CI must be green, then tag `v1.9` and publish the APK + checksum. The built release APK was already installed over the phone’s debug build with session and 133 XP / 3 lessons preserved. |
 | Secrets on host; production keys distinct; nothing secret in client | **Done** | Only the public Supabase `anon` JWT is in the APK. Service-role, LiveKit secret, SMTP password and database password stay in `supabase/.env.local`. There is one Supabase project rather than separate staging/production projects; the anon key is public by design and RLS/RPCs enforce access. |
-| Database migrations applied; backup/PITR enabled | **Done, PITR not enabled** | Migration `20261026000000_security_hardening` is in Supabase migration history. Physical backups (`walg_enabled=true`) are on; point-in-time recovery is off on the current plan. |
+| Database migrations applied; backup/PITR enabled | **Done, PITR not enabled** | Migration `20261026000000_security_hardening` remains in Supabase migration history. Physical backups (`walg_enabled=true`) are on; point-in-time recovery is off on the current plan. v1.9 adds no migration. |
 | Domain, HTTPS, canonical host, HSTS | **N/A** | No web deployment. APK and release assets are served by GitHub over HTTPS. |
 | Preview/staging not indexed | **N/A** | No preview web deployment. |
 
@@ -44,7 +44,7 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
 
 | Item | Status | Evidence / notes |
 | --- | --- | --- |
-| Privacy policy and terms | **Done** | [PRIVACY.md](PRIVACY.md) documents local progress, account data, call audio, retention and deletion. The app has no paid terms, so a separate terms page is not required for this free build. |
+| Privacy policy and terms | **Done** | [PRIVACY.md](PRIVACY.md) documents local progress, cutscene markers, account data, call audio, retention and deletion. The app has no paid terms, so a separate terms page is not required for this free build. |
 | Cookie consent | **N/A** | No cookies, WebView or web analytics in the app. |
 | Contact / imprint | **Done** | GitHub Issues on the public repository is the support and privacy contact. |
 
@@ -60,8 +60,8 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
 | Item | Status | Evidence / notes |
 | --- | --- | --- |
 | Store listing, screenshots, privacy labels | **N/A** | Sideloaded GitHub release, not a Play Store listing. README carries the download and verification instructions. |
-| TestFlight / Play internal testing | **N/A** | Android-only sideload. The published APK installed over the previous build on the emulator and the physical phone with data preserved. |
-| Signed release artifact and checksum | **Done** | V2 signature `CN=Android Debug`, cert SHA-256 `3888438c…`; SHA-256 `03941999…` published beside the APK and re-verified after download. Debug signing is accepted risk A-01 in `SECURITY-REVIEW.md`. |
+| TestFlight / Play internal testing | **N/A** | Android-only sideload. The release APK installed over the phone’s debug build with data preserved. |
+| Signed release artifact and checksum | **Done** | V2 signature `CN=Android Debug`, cert SHA-256 `3888438c…`; SHA-256 `1d37c06a82d8f8ecb54e3e5ac9ff650929567d9bee63a4f759fb2764552cbaec` published beside the APK after the release. Debug signing is accepted risk A-01 in `SECURITY-REVIEW.md`. |
 
 ## Handover
 
@@ -69,25 +69,25 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
 | --- | --- | --- |
 | README: run, deploy, secrets, rollback, accounts | **Done** | [README.md](README.md) and [BUILDING.md](BUILDING.md); backend details in [supabase/README.md](supabase/README.md). |
 | Test and security reports linked, open items stated | **Done** | [TEST-PLAN.md](TEST-PLAN.md), [TEST-REPORT.md](TEST-REPORT.md), [SECURITY-REVIEW.md](SECURITY-REVIEW.md). |
-| Live release and verification evidence | **Done** | [v1.8 release](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.8), [CI run](https://github.com/hidezfzefz/LingoEnglish/actions/runs/40412239645), APK SHA-256 `0394199900e79bf2ebdf744c72725bf0334a8be73efde7235a31eac89d7b39b7`. |
+| Live release and verification evidence | **Pending** | Tag, CI run, release URL, APK SHA-256, and over-install evidence to be recorded here after publication. |
 | User knows first-week checks and version 2 work | **Done** | Final handover below. |
 
 ## Open at launch
 
-1. **Physical-phone reminder tap and signed-out pass.** The published APK is installed
-   on the physical phone, and its 00:29 reminder was preserved. The 27 Oct alarm fired
-   and rescheduled for 28 Oct, but the notification had been cleared when checked later,
-   so the on-phone tap still needs owner confirmation. The phone also stays signed in as
-   the owner, so a fully signed-out journey was not run. Both are owner checks.
-2. **Two-phone audio quality.** Signalling, room join, mute, timer, rating,
-   report and block passed with a second account and a headless LiveKit peer.
-   Speaker/microphone quality and echo still need two real phones.
-3. **Email confirmation and branded SMTP.** Confirmation stays off until the
-   Google Workspace migration is completed. Recovery flow is tested app-side.
-4. **Debug signing key.** Accepted for v1.8 to preserve update continuity. A
-   dedicated release keystore is the next signing migration.
-5. **No point-in-time recovery.** Daily physical backups are enabled; PITR is
-   not. Export important data before risky migrations.
+1. **Physical-phone reminder tap and signed-out pass.** The phone stays signed in as the
+   owner, so a fully signed-out journey was not run. The 00:29 reminder is preserved from
+   v1.8; its on-phone tap remains an owner check. Both are owner actions, not code gaps.
+2. **Two-phone audio quality.** Signalling, room join, mute, timer, rating, report and
+   block retain v1.8 evidence. Speaker/microphone quality and echo still need two real
+   phones.
+3. **Email confirmation and branded SMTP.** Confirmation stays off until the Google
+   Workspace migration is completed. Recovery flow is tested app-side.
+4. **Debug signing key.** Accepted for v1.9 to preserve update continuity. A dedicated
+   release keystore is the next signing migration.
+5. **No point-in-time recovery.** Daily physical backups are enabled; PITR is not. Export
+   important data before risky migrations.
+6. **Physical-phone accessibility settings.** Font scale, reduced motion, and TalkBack
+   were covered on the emulator because the owner’s phone settings must not be changed.
 
 ## First week
 
@@ -96,6 +96,8 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
 - Check LiveKit usage and call completion counters.
 - Confirm the phone’s 00:29 reminder is delivered and opens Practice.
 - Re-check the published SHA-256 before announcing future releases.
+- Spot-check that the full launch appears once after the update and the sting on later
+  cold starts; confirm a completed lesson still opens directly.
 
 ## Version 2 candidates
 
@@ -103,3 +105,4 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
 - Dedicated release keystore and Play internal testing if distribution grows.
 - Verified HTTPS App Link for password recovery (closes accepted risk A-02).
 - Two-phone and fully signed-out QA on a fixed device matrix.
+- Optional richer cutscene variants, kept local, silent, and skippable.
