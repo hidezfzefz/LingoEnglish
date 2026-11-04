@@ -1,86 +1,249 @@
-# Lingo English v1.8: build plan (historical)
+# Lingo English v1.10: build plan
 
-> This is the v1.8 build plan, retained for project history. The current release is
-> v1.9; see `README.md` and `RELEASE-NOTES-1.9.md`.
+**Baseline:** `main` at `6e7482c`, tag `v1.9.1` at `2c97acf`, release 1.9.1
+(versionCode 11) installed and signed in on the physical phone. The only
+working-tree change at plan time is the approved `BRIEF.md`.
+
+**Goal:** Ship v1.10.0 (versionCode 12) with the Smart Review queue and the
+optional Night appearance, preserving every v1.9.1 feature and all local data.
 
 ## Architecture
 
-- **One activity, Compose navigation state.** Keep `MainActivity` + `LingoApp` and the existing tab/overlay state. No Navigation library or module split: the app is small and the current state model already survives rotation.
-- **Application-scoped stores.** `ProgressStore` remains the single source of truth for local progress and preferences; `CallStore` remains the source of truth for auth and calls. Both already outlive activity recreation.
-- **New reminder package.** `data/ReminderSchedule.kt` holds pure `java.time` next-trigger logic. `reminders/PracticeReminder.kt` owns the notification channel, alarm scheduling, and cancellation. `reminders/ReminderReceiver.kt` shows the notification and schedules the next day. A boot/package-replaced receiver reschedules only when reminders are enabled.
-- **No new dependency.** Use `AlarmManager.setAndAllowWhileIdle` for a single next reminder rather than WorkManager. Android may delay delivery in Doze, which is acceptable for a practice nudge; no exact-alarm permission is requested.
-- **Persistence.** Add `reminder_enabled`, `reminder_hour`, and `reminder_minute` to the existing `lingo_progress` preferences. Defaults: off, 19:00. `ProgressStore.reset()` keeps the reminder preference (like the daily goal) or turns it off explicitly; decision: keep the daily goal, turn reminders off and cancel the alarm so a reset truly starts quiet.
-- **Navigation.** No new screen. Settings gains a reminder section. A notification tap deep-links to the Practice tab through an intent extra consumed by `LingoApp` after the sign-in gate. Home gains one recommendation card above the existing daily plan.
-- **Offline behaviour.** Lessons, progress, flashcards, and reminders remain fully local. Sign-in, password recovery, matchmaking, and weekly submission keep their existing network paths and show retryable errors. No offline cache is added in v1.8.
-- **Permissions.** Add `POST_NOTIFICATIONS` (runtime on Android 13+) and `RECEIVE_BOOT_COMPLETED` (normal). The notification permission is requested only when the learner enables reminders. Existing microphone/Bluetooth permissions are unchanged. No exact-alarm, location, camera, or payment permission.
+- **Keep the current shape.** One `MainActivity`, `LingoTheme`, `LingoApp`,
+  application-scoped `ProgressStore` and `CallStore`. No Navigation library,
+  no ViewModel layer, and no module split. The app is small and the existing
+  overlay state already survives rotation.
+- **Pure review domain.** Add `data/ReviewQueue.kt` with no Android imports:
+  - `ReviewItem(exerciseId, misses, correctStreak, lastSeenAt)`
+  - `ReviewQueue.recordMiss(items, id, now)`
+  - `ReviewQueue.recordCorrect(items, id, now)`
+  - `ReviewQueue.due(items, validIds, limit = 5)`
+  - `ReviewQueue.encode(items)` / `ReviewQueue.decode(raw)`
+  - `ReviewQueue.reviewXp(correct, total)` for the quiz-style XP formula.
+- **Content lookup.** Add `LingoContent.exerciseById(id)` and
+  `LingoContent.reviewableExercises` (all auto-scorable lesson exercises plus
+  the practice bank; exclude `WRITE`). IDs are the stable content keys.
+- **Persistence.** `ProgressStore` owns one new preference string
+  (`review_items`) and one new appearance preference (`theme_mode`). It exposes
+  Compose state and functions, so every screen sees the same queue immediately.
+- **Review screen.** A single `ReviewScreen` composable snapshots up to five
+  valid exercises when opened, then runs a normal check/continue loop with
+  `ExerciseView`. It uses a dedicated result screen and never mutates the
+  snapshot mid-session.
+- **Navigation.** Add `showReview` to the existing overlay state in `LingoApp`.
+  `openReview()` clears other overlays, `BackHandler` closes review, and every
+  entry point uses the same doorway.
+- **Theme tokens.** Add `ThemeMode { PAPER, NIGHT }`, `LingoPalette`,
+  `LocalLingoPalette`, and `LingoTheme(mode)`. Convert the existing top-level
+  colour values to composable palette getters so the 943 existing references
+  become theme-aware without a screen-by-screen rewrite. Fix the few
+  non-composable helpers (`paletteFor`, `stickerColors`) and the `ColorScheme`
+  builders explicitly.
+- **Offline behaviour.** Review state and the appearance choice are local. The
+  review queue, review session, theme switch, and all existing lessons work in
+  airplane mode. No new network call, permission, or service is introduced.
+- **Native permissions.** The manifest stays unchanged: existing internet,
+  network state, microphone, Bluetooth, notifications, and boot permissions
+  only. Camera and screen-capture permissions remain removed.
 
-## Screens and state
+## Data rules
 
-| Surface | Change |
-| --- | --- |
-| Settings sheet | Daily reminder switch, chosen time, permission-denied guidance, link to system notification settings |
-| Home | One “Recommended next” card: weekly test due → level exam ready → continue lesson → free practice |
-| Notification | “A few minutes of English?” with the learner’s streak, tap opens Practice |
-| Practice tab | Unchanged; receives the deep link |
-| Everything else | Unchanged behaviour and layout |
+- Only `CHOICE`, `LISTENING`, and `FILL_BLANK` exercises are reviewable.
+  Creative `WRITE` tasks are never queued.
+- A miss adds the exercise or increments its `misses`, resets
+  `correctStreak` to zero, and records `lastSeenAt`.
+- A correct answer increments `correctStreak`. At two, the item is removed.
+  A later miss starts it again.
+- `due()` filters to IDs still present in bundled content, sorts by
+  `misses` descending, then `lastSeenAt` ascending, then ID, and takes five.
+- Encoded format: one item per line, tab-separated
+  `exerciseId, misses, correctStreak, lastSeenAt`. Decoding ignores malformed
+  lines, duplicate IDs, and out-of-range values. Cap decoded input at 200
+  lines to avoid a corrupt preference causing a large allocation.
+- Review XP: `correct * 4 + 10` when `correct / total >= 0.8`, matching the
+  existing quiz economy. It updates total XP, daily XP, streak, active days,
+  and the activity chart. It does **not** update `quizAttempts`,
+  `quizCorrect`, `perfectQuizzes`, or `todayQuizzes`.
+- `reset()` clears `review_items`. The appearance choice is a display
+  preference, not learning progress, so it survives a learning reset.
 
-## Build order
+## Build order and verification
 
-Each task is small enough to verify on its own. Do not start a task until the previous one builds.
+### M0 — Baseline and safety net
 
-1. **Baseline.** Confirm the clean tree at v1.7, run `:app:testDebugUnitTest` and `:app:lintDebug`, and record the current APK size and install state.
-   *Verify:* tests and lint pass; `adb shell dumpsys package com.lingo.app` shows version 1.7 / code 8 on the phone.
-2. **Reminder schedule logic.** Add `ReminderSchedule.nextTrigger(now, hour, minute, practicedToday)` returning the next `ZonedDateTime`, plus `notificationText(streak, xp)`.
-   *Verify:* JVM unit tests cover later-today, already-past-today, practiced-today, midnight, and month/year boundaries.
-3. **Reminder preferences.** Add enabled/hour/minute state and setters to `ProgressStore`; update `reset()` to disable reminders and cancel the alarm.
-   *Verify:* compile; a small instrumentation-free test or manual `SharedPreferences` check; reset leaves reminders off.
-4. **Scheduler and receivers.** Add the notification channel, `PracticeReminder.schedule/cancel`, `ReminderReceiver`, `ReminderRescheduleReceiver`, and manifest entries with `exported="false"`.
-   *Verify:* `dumpsys alarm` lists one Lingo alarm after enabling; reboot/package-replaced reschedules; disabling removes it.
-5. **Settings UI.** Add the switch, time row, Material 3 time picker, and permission flow (`RequestPermission`), including “blocked in system settings” recovery.
-   *Verify:* enabling on Android 13+ shows the permission dialog; denying leaves the switch off with a clear message; allowing schedules the alarm; changing time reschedules.
-6. **Notification deep link.** Add `EXTRA_OPEN_PRACTICE`, handle it in `MainActivity`/`LingoApp`, and route to the Practice tab only after the sign-in gate.
-   *Verify:* tapping the notification opens Practice when signed in and the gate when signed out; after sign-in it lands on Practice.
-7. **Home recommendation.** Add a pure `NextStep.recommend(...)` function and a compact card using it; hide the card when the daily goal is already complete.
-   *Verify:* unit tests cover weekly due, exam ready, next lesson, path complete, and goal complete; UI shows exactly one primary action.
-8. **Accessibility pass.** Audit every icon-only control for a content description, ensure 48 dp touch targets, add heading semantics to section titles, verify contrast, and check 200% font scale and landscape.
-   *Verify:* `lintDebug` has no accessibility errors; TalkBack reads the Home, Settings, and Practice screens in a logical order; no clipped text at 200%.
-9. **Reliability pass.** Find and fix duplicate-submit paths in sign-in, sign-up, password reset, call start/end, and weekly submission; ensure each failure has a retry path and no success state is shown on error.
-   *Verify:* code review checklist; airplane-mode manual tests for sign-in and call start; repeated taps produce one request.
-10. **Automated tests.** Keep the content audit, add the new JVM tests, and run `:app:testDebugUnitTest` plus `:app:lintDebug`.
-    *Verify:* all tests pass; lint 0 errors; CI workflow updated if a new test class needs it.
-11. **Docs and version.** Bump to 1.8 / versionCode 9, update README and BUILDING with reminders, permissions, and the upgrade note, and write release notes.
-    *Verify:* README commands still work; no secret or signing key is added.
-12. **Release candidate.** Build `:app:assembleRelease`, verify the APK signature and SHA-256, install over v1.7 on the physical phone.
-    *Verify:* 147 XP, sign-in, streak, lessons, and install date survive; reminders default off; app version reads 1.8.
-13. **Device QA.** Exercise the login gate, lesson, creative draft, weekly test, level exam, voice call, settings, reminder, rotation, and process-death paths on the emulator and phone.
-    *Verify:* the test matrix in `PLAN.md` passes; no orphan QA data is left on Supabase.
-14. **Security review handoff.** Prepare the manifest, data-flow, auth, secret, and dependency checklist for Convio stage 6; fix anything it finds before release.
-    *Verify:* stage 6 “done when” list is complete.
-15. **Ship.** Push, wait for CI, tag `v1.8`, publish the APK and checksum, and verify the release installs over v1.7.
-    *Verify:* CI green, release assets present, README link resolves.
+- [ ] Confirm `main`, tag, installed version, signed-in state, XP, streak, and
+      `u2-l1` progress on the phone. Record the baseline in `TEST-REPORT.md`.
+- [ ] Run the existing unit tests and content audit:
+      `./gradlew :app:testDebugUnitTest --no-daemon --max-workers=2 --console=plain`.
+- [ ] Build a debug APK and confirm it installs over the release build without
+      losing the session. The release and debug builds share the debug signing
+      key, so the data directory is preserved.
+- [ ] Capture a private progress backup with `run-as` while the debuggable
+      build is installed. Store it only under `/tmp/opencode`, never in the
+      repo, never print its contents. Verify a restore round-trip before any
+      destructive test.
+- [ ] Bump `versionCode` to 12 and `versionName` to `1.10.0`.
+- [ ] Add empty test files for the new pure logic and a release-notes stub.
 
-## Test matrix
+**Verify:** tests green; debug install opens signed in; backup file exists
+outside the repo and restores the same XP/streak.
 
-| Area | Cases |
-| --- | --- |
-| Reminder logic | Later today, past today, practiced today, midnight, DST-safe local time, month/year boundary |
-| Reminder device | Enable, deny permission, allow permission, change time, disable, reboot, app update, tap notification, goal already met |
-| Home recommendation | Weekly test due, exam eligible, next lesson, path complete, goal complete |
-| Existing learning | Lesson completion XP, creative draft save, weekly test once per week, exam pass/fail/retry |
-| Accounts | Sign-up, sign-in, wrong password, password reset link, sign-out, gate on cold start |
-| Calls | Same-level match, friend code, Skip, End, report, rating, block, rotation |
-| Data safety | Install 1.8 over 1.7; XP, streak, completed lessons, drafts, and sign-in preserved |
-| Accessibility | TalkBack order, 200% font, landscape, 48 dp targets, contrast |
-| Security | Exported components, PendingIntent flags, no secrets in logs/APK, backup rules |
+### M1 — Review domain and tests
 
-## Risks and mitigations
+- [ ] Add `ReviewItem`, `ReviewQueue`, and the XP helper.
+- [ ] Add `LingoContent.exerciseById` / `reviewableExercises`; assert every
+      reviewable ID is unique and non-creative.
+- [ ] Write `ReviewQueueTest`:
+      miss adds; one correct keeps; two correct clears; miss resets streak;
+      ordering; limit five; unknown IDs pruned; encode/decode round trip;
+      malformed lines ignored; duplicate IDs deduped; XP formula.
+- [ ] Write a content test that every reviewable exercise resolves back to an
+      `Exercise`.
 
-- **Alarm delivery is inexact.** Accept Doze delays; never promise an exact minute in copy. Provide a “practise now” path from the app.
-- **Notification permission denial.** Keep reminders off, explain how to enable them in system settings, and never block learning.
-- **Receiver security.** Use explicit intents, immutable PendingIntents, `exported="false"`, and no user data beyond the notification text.
-- **Reset surprise.** Reset turns reminders off and cancels the alarm; the settings copy says so.
-- **Data loss.** No schema migration removes keys; only additive preferences. Verify install-over-upgrade before release.
+**Verify:** `./gradlew :app:testDebugUnitTest --tests "com.lingo.app.ReviewQueueTest"`.
 
-## Out of scope
+### M2 — Persistence and capture hooks
 
-iOS, cross-platform rewrite, new curriculum, pronunciation scoring, offline audio, payments, leaderboards, rebrand, Google Workspace migration.
+- [ ] Add `reviewItems`, `reviewDueCount`, `reviewExercises(limit)`,
+      `recordReviewMiss`, `recordReviewCorrect`, and `recordReviewSession` to
+      `ProgressStore`.
+- [ ] Load and save the encoded queue in `init`/each mutation. Clear it in
+      `reset()`.
+- [ ] Hook `LessonScreen`: when a non-creative answer is checked, record the
+      result exactly once. Do not record creative tasks.
+- [ ] Hook `QuizScreen`: when an answer is checked, record the result exactly
+      once.
+- [ ] Add a small test for the XP helper and the reset-clears-queue rule where
+      it can be expressed without an Android context.
+
+**Verify:** wrong lesson answer increments the queue; wrong quiz answer
+increments it; a correct answer does not add an item; force-stop and relaunch
+keeps the count.
+
+### M3 — Review session screen
+
+- [ ] Add `ReviewScreen` with a snapshot of up to five exercises, header
+      progress, `ExerciseView`, check/continue, and a result screen.
+- [ ] On check: record miss or correct against the queue. On finish: call
+      `recordReviewSession(correct, total)` once.
+- [ ] Result screen: score, XP, remaining queue count, "Review again" when
+      items remain, and "Back to practice". Reuse the existing result visual
+      language without duplicating the whole quiz result composable.
+- [ ] Add `showReview` to `LingoApp`, `openReview()`, and `BackHandler`.
+- [ ] Empty/unknown queue state: friendly message and a way back; never crash.
+
+**Verify:** seed two wrong answers, open review, answer one right and one
+wrong, confirm the queue count changes correctly and XP/streak update once.
+Rotate and force-stop mid-session; the session restarts safely and the queue
+is intact.
+
+### M4 — Entry points
+
+- [ ] Home: compact `ReviewCard` only when `reviewDueCount > 0`, with count,
+      estimated time, and a single review action. It sits below the daily hero
+      and does not replace the primary lesson action.
+- [ ] Practice: "Tricky questions" card with count, or a friendly empty state.
+- [ ] Quiz result: "Review tricky questions" action when the queue is
+      non-empty; hidden for a perfect quiz with an empty queue.
+- [ ] Pass `onOpenReview` through `LingoApp` to Home, Practice, and Quiz.
+- [ ] TalkBack labels, 48 dp targets, and no color-only status.
+
+**Verify:** on the phone, a wrong answer produces the Home card and Practice
+count; each entry opens the same review; clearing the queue hides the Home
+card and shows the Practice empty state.
+
+### M5 — Night appearance
+
+- [ ] Add `ThemeMode`, `LingoPalette`, `LingoPalettes.Paper`,
+      `LingoPalettes.Night`, `LocalLingoPalette`, and `LingoTheme(mode)`.
+- [ ] Convert the top-level colour values to composable getters; fix
+      `paletteFor`, `stickerColors`, the light/dark `ColorScheme` builders, and
+      any non-composable call sites the compiler finds.
+- [ ] Add `themeMode` to `ProgressStore` and an Appearance section in Settings
+      with Warm paper / Night choices and a short explanation.
+- [ ] Update `MainActivity` to pass the mode and switch system bar icon
+      appearance. Warm paper remains the default.
+- [ ] Add a pure contrast test for the key text/background pairs in both
+      palettes (4.5:1 for body text, 3:1 for large text and UI components).
+- [ ] Isolate the theme work in its own commits so it can be reverted without
+      touching Smart Review if it fails QA.
+
+**Verify:** switch to Night, walk every screen (Home, Learn, Practice, Call,
+Progress, Settings, lesson, quiz, flashcards, word bank, roleplay, sentence
+tiles, level path, test session, sign-in, cutscene), rotate, force-stop, and
+relaunch. Switch back to Warm paper and confirm the original look. Run the
+contrast test.
+
+### M6 — Docs and release candidate
+
+- [ ] Update `README.md` with Smart Review, Night appearance, version, APK
+      name, and checksum instructions.
+- [ ] Write `RELEASE-NOTES-1.10.md`.
+- [ ] Update `SECURITY-REVIEW.md`, `TEST-REPORT.md`, and
+      `LAUNCH-CHECKLIST.md` with this release's evidence.
+- [ ] Build debug and release with the low-resource flags; stop daemons.
+- [ ] Install the release over v1.9.1 and verify the signed-in session, XP,
+      streak, completed lessons, drafts, reminders, goal, exams, and weekly
+      scores.
+
+**Verify:** `:app:testDebugUnitTest`, `:app:lintDebug`,
+`:app:assembleDebug`, and `:app:assembleRelease` all pass; the over-install
+opens signed in with the baseline data intact.
+
+## Convio stage checkpoints
+
+- [ ] **Design:** settle the review card, session, result, Night palette,
+      contrast pairs, motion, and accessibility specs. Show the user, then call
+      `next_stage` for the Scaffold brief.
+- [ ] **Scaffold:** confirm the existing project/tooling, version bump, palette
+      scaffolding, and test harness. Then call `next_stage` for Build screens.
+- [ ] **Build screens:** complete M1–M6. Then call `next_stage` for Security
+      review.
+- [ ] **Security review:** run the required checks, fix findings, update
+      `SECURITY-REVIEW.md`, then call `next_stage` for Test thoroughly.
+- [ ] **Test thoroughly:** run the full matrix below, record evidence in
+      `TEST-REPORT.md`, then call `next_stage` for Ship.
+- [ ] **Ship:** CI green, release published, asset verified, docs updated, and
+      the published APK over-installed. Then finish the Convio pipeline.
+
+## Verification matrix
+
+- **Unit:** `ReviewQueueTest`, `ReviewXpTest`, `ThemeContrastTest`, plus the
+  existing content, reminder, next-step, cutscene-policy, and cutscene-content
+  tests.
+- **Build:** debug APK, release APK, Android Lint, content audit, GitHub
+  Actions.
+- **Device:** physical `RZCW30HF88J` (Samsung SM-A546E, Android 16/API 36),
+  release build, signed-in owner, display/density/font/rotation unchanged.
+- **Smart Review:** miss a lesson question; miss a quiz question; see the Home
+  and Practice counts; open from all three entry points; one correct keeps;
+  two correct clears; a later miss restores; empty state; unknown ID safe;
+  rotation; force-stop; offline.
+- **XP/streak:** review XP matches the formula, daily XP and streak update
+  once, accuracy and the daily "quick challenge" do not change.
+- **Night:** both appearances on every screen; 200% font; TalkBack; reduced
+  motion; status/navigation bar icons; contrast test.
+- **Regression:** launch ≤5 s and skippable; lesson intro one Begin tap and
+  ≤5 s; lessons; creative drafts; level exams; weekly tests; accounts and
+  recovery; reminders; calls; word bank; flashcards; roleplay; sentence tiles.
+- **Upgrade:** over-install release 1.10.0 over 1.9.1; session and all local
+  progress preserved; review queue empty on first launch after upgrade.
+- **Security:** no new permissions, no secrets in the APK or logs, backup rules
+  unchanged, exported components unchanged, local review data contains only
+  content IDs and counters.
+
+## Risks and fallbacks
+
+- **Night theme breadth.** The app has many hardcoded palette references.
+  Mitigation: palette getters, contrast tests, a screen-by-screen sweep, and
+  isolated commits. If Night cannot pass QA without destabilising the release,
+  revert the Night commits and ship Smart Review on Warm paper; tell the user
+  before shipping.
+- **Review queue corrupt data.** Mitigation: pure encode/decode tests, malformed
+  line skipping, ID pruning, and a 200-line cap.
+- **Double-recording.** Mitigation: record only inside the one-shot check
+  action, never in composition; verify with a force-stop/relaunch count check.
+- **Data loss during destructive QA.** Mitigation: private backup/restore
+  round-trip before clearing anything, and never print or commit the backup.
+- **Build resource limits.** Keep `--no-daemon --max-workers=2`, stop daemons,
+  and avoid parallel Gradle work.

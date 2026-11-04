@@ -6,7 +6,6 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -14,34 +13,43 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // A warm, editorial palette: cream paper, forest ink, and a fresh lime accent.
-val Cream = Color(0xFFFAF6EE)
-val Paper = Color(0xFFFFFCF6)
-val Ink = Color(0xFF17251F)
-val InkSoft = Color(0xFF32443B)
-val Forest = Color(0xFF143D31)
-val Emerald = Color(0xFF2A7D5F)
-val Mint = Color(0xFFE3F1E7)
-val MintDeep = Color(0xFFCFE7D7)
-val Lime = Color(0xFFD9F27C)
-val LimeSoft = Color(0xFFEEF7CD)
-val Coral = Color(0xFFEC7256)
-val CoralDeep = Color(0xFF8C3B27)
-val Peach = Color(0xFFFCE5DB)
-val Blue = Color(0xFF3B6E9E)
-val Sky = Color(0xFFE3EDF8)
-val Purple = Color(0xFF6E5AA6)
-val Lavender = Color(0xFFECE7F8)
-val Teal = Color(0xFF2F7D7A)
-val Seafoam = Color(0xFFDFF3EE)
-val DeepTeal = Color(0xFF1F504C)
-val Gold = Color(0xFFE9B949)
-val Sand = Color(0xFFF1E9DA)
-val Line = Color(0xFFE8E0D2)
+// The canonical values live in LingoPalettes.Paper; these aliases keep the
+// existing screens source-compatible until the Night migration wires every
+// call site to LocalLingoPalette.
+val Cream = LingoPalettes.Paper.cream
+val Paper = LingoPalettes.Paper.paper
+val Ink = LingoPalettes.Paper.ink
+val InkSoft = LingoPalettes.Paper.inkSoft
+val Forest = LingoPalettes.Paper.forest
+val Emerald = LingoPalettes.Paper.emerald
+val Mint = LingoPalettes.Paper.mint
+val MintDeep = LingoPalettes.Paper.mintDeep
+val Lime = LingoPalettes.Paper.lime
+val LimeSoft = LingoPalettes.Paper.limeSoft
+val Coral = LingoPalettes.Paper.coral
+val CoralDeep = LingoPalettes.Paper.coralDeep
+val Peach = LingoPalettes.Paper.peach
+val Blue = LingoPalettes.Paper.blue
+val Sky = LingoPalettes.Paper.sky
+val Purple = LingoPalettes.Paper.purple
+val Lavender = LingoPalettes.Paper.lavender
+val Teal = LingoPalettes.Paper.teal
+val Seafoam = LingoPalettes.Paper.seafoam
+val DeepTeal = LingoPalettes.Paper.deepTeal
+val Gold = LingoPalettes.Paper.gold
+val Sand = LingoPalettes.Paper.sand
+val Line = LingoPalettes.Paper.line
 // Darkened from #6E7D75 so small secondary text clears 4.5:1 on cream,
 // paper, and sand surfaces (5.46:1, 5.74:1, and 4.88:1).
-val Muted = Color(0xFF59685F)
-val Danger = Color(0xFFC2493D)
-val PureWhite = Color(0xFFFFFFFF)
+val Muted = LingoPalettes.Paper.muted
+val Danger = LingoPalettes.Paper.danger
+val PureWhite = LingoPalettes.Paper.pureWhite
+
+// New semantic tokens. OnCoral replaces white text on coral fills, which was
+// below 4.5:1 in the paper palette.
+val OnCoral = LingoPalettes.Paper.onCoral
+val OnBrandMuted = LingoPalettes.Paper.onBrandMuted
+val FocusRing = LingoPalettes.Paper.focus
 
 private val LingoColors = lightColorScheme(
     primary = Forest,
@@ -53,7 +61,7 @@ private val LingoColors = lightColorScheme(
     secondaryContainer = LimeSoft,
     onSecondaryContainer = Ink,
     tertiary = Coral,
-    onTertiary = PureWhite,
+    onTertiary = OnCoral,
     tertiaryContainer = Peach,
     onTertiaryContainer = Ink,
     background = Cream,

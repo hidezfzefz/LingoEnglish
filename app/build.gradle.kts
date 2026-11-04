@@ -29,8 +29,8 @@ android {
         applicationId = "com.lingo.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 11
-        versionName = "1.9.1"
+        versionCode = 12
+        versionName = "1.10.0"
 
         buildConfigField("String", "SUPABASE_URL", quoted(configValue("LINGO_SUPABASE_URL")))
         buildConfigField("String", "SUPABASE_ANON_KEY", quoted(configValue("LINGO_SUPABASE_ANON_KEY")))
