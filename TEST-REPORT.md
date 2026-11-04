@@ -1,4 +1,58 @@
-# Test report — Lingo English 1.9
+# Test report — Lingo English 1.9.1
+
+## 1.9.1 patch — A2 Travel lesson finish crash
+
+- Build: `1.9.1` (`versionCode 11`), release APK signed with the debug key
+- Device: Samsung SM-A546E, Android 16 / API 36 (1080×2340)
+- Test window: 2026-11-04
+
+**Root cause.** The owner’s saved `u2-l1` creative draft is 112,356 characters
+across 2,089 lines. `OutlinedTextField` grew to fit every line, producing a
+measured height of 262,994 px. Compose packs layout constraints into 18 bits, so
+the maximum representable dimension is 262,143 px. Entering step 6 crashed with:
+
+```text
+java.lang.IllegalArgumentException: Can't represent a width of 962 and height of 262994 in Constraints
+    at androidx.compose.material3.OutlinedTextFieldMeasurePolicy.measure
+```
+
+Android’s exit record confirmed `APP CRASH(EXCEPTION)` at 21:52:45 and an earlier
+identical crash at 21:48:07.
+
+**Fix.** `ExerciseView.kt` now gives the creative field `minLines = 4` and
+`maxLines = 8`. The field keeps a readable height and scrolls internally; the
+full draft stays in `writing_u2-l1-create` and remains editable. No data is
+truncated or migrated.
+
+**Verification.**
+
+- Debug build with the fix: opened the real `u2-l1` creative step with the
+  2,089-line draft, showed `16,567 words`, checked the writing, finished the
+  lesson, and reached `Lesson complete!` with `+35 XP` and `4/4 tasks met`.
+- Release candidate `1.9.1` (`11`) installed over the debug build with
+  `adb install -r`; the same full path passed on the release binary. Logcat had
+  no `FATAL EXCEPTION` or `AndroidRuntime` entry, and the app process stayed
+  alive.
+- The pre-test progress file was restored byte-for-byte (SHA-256
+  `0d7b986e…`); the final phone state is the release build `1.9.1` (`11`) with
+  the signed-in session, 1-day streak, 179 XP, and `u2-l1` still incomplete.
+- `:app:testDebugUnitTest` 28/28; `:app:lintRelease` 0 errors, 43 non-blocking
+  warnings.
+
+Final patch artifact:
+
+| Item | Value |
+| --- | --- |
+| APK | `app/build/outputs/apk/release/app-release.apk` |
+| Size | 72,997,297 bytes |
+| SHA-256 | `60dd5d0903448bc980ab1a836ea56dc58d8b70541323c3feeb2f728f61e76cba` |
+| Signature | APK Signature Scheme v2, `CN=Android Debug`, cert SHA-256 `3888438c…` (accepted risk A-01) |
+| Version | `1.9.1` (`versionCode 11`), min SDK 26, target SDK 37 |
+| Release | [v1.9.1](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9.1) |
+
+---
+
+# v1.9 baseline
 
 - Build: `1.9` (`versionCode 10`), release APK signed with the debug key
 - Platforms: Samsung SM-A546E, Android 16 / API 36 (1080×2340) as the remaining v1.9 device; Android 17 / API 37 emulator for the earlier accessibility and layout pass

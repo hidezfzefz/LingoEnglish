@@ -193,6 +193,12 @@ private fun CreativeResponse(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 150.dp),
+        // Keep the field scrollable inside a fixed number of lines. A saved
+        // draft can be very long (the owner hit this with a 2,089-line draft);
+        // letting the field grow to fit every line overflows Compose's
+        // 18-bit constraint limit and crashes the lesson.
+        minLines = 4,
+        maxLines = 8,
         enabled = !checked,
         placeholder = {
             Text(

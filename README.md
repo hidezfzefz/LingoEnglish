@@ -11,27 +11,39 @@ creative, high-stakes conversations.
 
 Install the latest APK from the
 [Releases page](https://github.com/hidezfzefz/LingoEnglish/releases/latest).
-The current build is [Lingo English 1.9](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9).
+The current build is [Lingo English 1.9.1](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9.1).
 Android 8.0 (API 26) or newer is required.
 
 ```bash
-adb install -r LingoEnglish-1.9.apk
+adb install -r LingoEnglish-1.9.1.apk
 ```
 
-That release publishes `LingoEnglish-1.9.apk` and
-`LingoEnglish-1.9.apk.sha256`. Verify the download before installing:
+That release publishes `LingoEnglish-1.9.1.apk` and
+`LingoEnglish-1.9.1.apk.sha256`. Verify the download before installing:
 
 ```bash
-sha256sum -c LingoEnglish-1.9.apk.sha256
+sha256sum -c LingoEnglish-1.9.1.apk.sha256
 ```
 
-The v1.9 APK SHA-256 is
-`1d37c06a82d8f8ecb54e3e5ac9ff650929567d9bee63a4f759fb2764552cbaec`
-(72,997,289 bytes).
+The v1.9.1 APK SHA-256 is
+`60dd5d0903448bc980ab1a836ea56dc58d8b70541323c3feeb2f728f61e76cba`
+(72,997,297 bytes). The v1.9 release remains available for its original notes.
 
 The published APK is a sideload preview signed with the project's debug key.
 Keep that in mind if you plan to publish on Google Play: use your own release
 keystore and keep it out of version control.
+
+## What's new in 1.9.1
+
+- Fixes a crash when finishing a lesson whose saved **Create** draft is very long.
+  The writing field now stays at a readable height and scrolls internally instead of
+  growing to fit every line. The full draft is kept and remains editable.
+- Version 1.9.1 (versionCode 11) installs directly over 1.9 without clearing the
+  signed-in session, XP, completed lessons, writing drafts, reminders, or daily goal.
+- No other behavior changed. The v1.9 launch cutscene, lesson intros, creative chips,
+  and all v1.8 features are unchanged.
+
+The patch release notes are in [RELEASE-NOTES-1.9.1.md](RELEASE-NOTES-1.9.1.md).
 
 ## What's new in 1.9
 
@@ -51,7 +63,7 @@ keystore and keep it out of version control.
   signed-in session, XP, level, completed lessons, writing drafts, reminders,
   or daily goal. Every v1.8 feature is retained.
 
-The full release notes are in [RELEASE-NOTES-1.9.md](RELEASE-NOTES-1.9.md).
+The full v1.9 release notes are in [RELEASE-NOTES-1.9.md](RELEASE-NOTES-1.9.md).
 
 ## What is inside
 
@@ -154,7 +166,7 @@ app/build/outputs/apk/release/app-release.apk
 See [BUILDING.md](BUILDING.md) for the low-resource Gradle settings,
 [supabase/README.md](supabase/README.md) for backend deployment, auth,
 password recovery, LiveKit, and SMTP setup, and
-[SECURITY-REVIEW.md](SECURITY-REVIEW.md) for the v1.9 security review.
+[SECURITY-REVIEW.md](SECURITY-REVIEW.md) for the v1.9.1 security review.
 
 ## Release and rollback
 
@@ -171,12 +183,12 @@ password recovery, LiveKit, and SMTP setup, and
    A downgrade is only safe when the old version accepts the current local data;
    otherwise restore a device backup.
 
-Release builds use the project debug key for v1.9 so existing installs can
+Release builds use the project debug key for the 1.9 line so existing installs can
 update in place. That is an accepted sideload risk, documented as A-01 in
 [SECURITY-REVIEW.md](SECURITY-REVIEW.md); use a dedicated release keystore
 before any store distribution.
 
-The v1.9 launch evidence is in [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md),
+The v1.9.1 and v1.9 launch evidence is in [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md),
 [TEST-PLAN.md](TEST-PLAN.md), and [TEST-REPORT.md](TEST-REPORT.md). Data handling
 is described in [PRIVACY.md](PRIVACY.md).
 
@@ -228,7 +240,7 @@ CI runs the same audit on every push and pull request. It verifies:
 
 On-device smoke tests cover the login gate, password recovery, lessons,
 creative writing, weekly tests, live calls, and data-preserving upgrades. The
-full v1.9 matrix and evidence are in [TEST-PLAN.md](TEST-PLAN.md) and
+full v1.9.1 and v1.9 matrix and evidence are in [TEST-PLAN.md](TEST-PLAN.md) and
 [TEST-REPORT.md](TEST-REPORT.md).
 
 ## Privacy

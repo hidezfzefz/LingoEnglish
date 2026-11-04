@@ -1,11 +1,20 @@
-# Launch checklist — Lingo English 1.9
+# Launch checklist — Lingo English 1.9.1
 
-- Reviewed: 2026-11-03
-- Release: `1.9` (`versionCode 10`), APK signed with the project debug key
+- Reviewed: 2026-11-04
+- Release: `1.9.1` (`versionCode 11`), APK signed with the project debug key
 - Distribution: public GitHub Release, sideloaded APK (no Play Store listing)
-- Status: **published** — CI green, tag `v1.9`, and release assets published and verified
+- Status: **published** — CI green, tag `v1.9.1`, and release assets published and verified
 
-This checklist is adapted from `convio/launch-checklist` for an Android app.
+## 1.9.1 patch
+
+| Item | Status | Evidence / notes |
+| --- | --- | --- |
+| A2 Travel finish crash fixed | **Done** | The owner’s `u2-l1` creative draft is 112,356 characters across 2,089 lines. The unbounded `OutlinedTextField` measured 262,994 px, above Compose’s 262,143 px constraint limit. `ExerciseView.kt` now caps the field at 8 visible lines with internal scrolling; the full draft is preserved. |
+| Patch build and phone QA | **Done** | `:app:testDebugUnitTest` 28/28; `:app:lintRelease` 0 errors, 43 non-blocking warnings. Debug and release candidates both opened the real creative step with the 2,089-line draft, checked it, finished the lesson, and reached `Lesson complete!` with `+35 XP` / `4/4`; no `FATAL EXCEPTION` in logcat. |
+| Owner data preserved | **Done** | The pre-test progress backup was restored byte-for-byte (SHA-256 `0d7b986e…`). Final phone state: release `1.9.1` (`11`), signed-in session, 1-day streak, 179 XP, and `u2-l1` still incomplete. |
+| Patch artifact verified | **Done** | `app-release.apk`, 72,997,297 bytes, SHA-256 `60dd5d09…`, V2 certificate `3888438c…`, version `1.9.1` (`11`). |
+
+The v1.9 checklist below remains as the baseline evidence for the release line.
 Web-only items are marked **N/A** with the reason, rather than left implicit.
 
 ## Deploy

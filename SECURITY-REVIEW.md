@@ -1,24 +1,37 @@
-# Security review — Lingo English 1.9
+# Security review — Lingo English 1.9.1
 
-Reviewed: 2026-11-03  
-Scope: the Android app, its Supabase schema/RLS/Edge Functions, LiveKit token issuing, and the v1.9 release APK.  
+Reviewed: 2026-11-04
+
+Scope: the Android app, its Supabase schema/RLS/Edge Functions, LiveKit token issuing, and the v1.9.1 release APK.
+
 Reviewer: Lingo maintainers (self-review, no external penetration test).
+
+## 1.9.1 patch
+
+The only code change is a bounded line count for the creative writing field
+(`minLines = 4`, `maxLines = 8`) to prevent a Compose constraint overflow when a
+saved draft is extremely long. The full draft remains in local preferences and
+is not truncated. The patch adds no permissions, dependencies, network calls,
+storage fields, or exported components, and it does not change authentication,
+RLS, LiveKit, or backup behavior.
 
 ## Release under review
 
 | Item | Value |
 | --- | --- |
 | Package | `com.lingo.app` |
-| Version | `1.9` (`versionCode 10`) |
-| APK | `app-release.apk`, 72,997,289 bytes |
-| Published | [v1.9](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9) |
-| CI | [Content audit 41730852766](https://github.com/hidezfzefz/LingoEnglish/actions/runs/41730852766) — pass |
-| SHA-256 | `1d37c06a82d8f8ecb54e3e5ac9ff650929567d9bee63a4f759fb2764552cbaec` |
+| Version | `1.9.1` (`versionCode 11`) |
+| APK | `app-release.apk`, 72,997,297 bytes |
+| Published | [v1.9.1](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9.1) |
+| CI | Content audit — pass on the v1.9.1 source commit |
+| SHA-256 | `60dd5d0903448bc980ab1a836ea56dc58d8b70541323c3feeb2f728f61e76cba` |
 | Signature | APK Signature Scheme v2, `CN=Android Debug` (see A-01) |
 | Minimum / target SDK | 26 / 37 |
 
 The app is distributed as a sideloaded APK from GitHub. There is no Play Store listing,
 payment flow, file upload, WebView, admin area, or server-side HTML rendering.
+
+The v1.9 review below remains as the baseline evidence for the release line.
 
 ## What changed in v1.9
 
@@ -106,8 +119,11 @@ bundled strings selected in Compose state.
 | MobSF-equivalent Android static checks | Release manifest is not debuggable; `allowBackup=true` but both backup rule files exclude `lingo_secure_auth.xml` and the legacy prefs; no custom `TrustManager`/`HostnameVerifier`; no cleartext HTTP URL; only the expected exported launcher activity and DUMP-guarded profile receiver; no hardcoded secret material. MobSF itself was not run because the Docker image pull was blocked by the host resolver. |
 | APK content scan | One JWT: the expected public Supabase anon token (`role=anon`). No service-role key, LiveKit secret, SMTP password, Supabase access token, database password, or private-key material. |
 | Merged release manifest | Eight normal permissions (`INTERNET`, `ACCESS_NETWORK_STATE`, `RECORD_AUDIO`, `MODIFY_AUDIO_SETTINGS`, `BLUETOOTH`, `BLUETOOTH_CONNECT`, `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`) plus the AndroidX dynamic-receiver permission; no camera, foreground-service, media-projection, or screen-capture entries. Only `MainActivity` and the DUMP-guarded profile installer receiver are exported. |
-| Signature / badging | APK Signature Scheme v2, `CN=Android Debug`, certificate SHA-256 `3888438c2652dff2a67d2953996eddc0b83ff8f6f4167a5161e6794c766c1df3`; version `1.9` (`10`), min SDK 26, target SDK 37. |
-| Published asset | Downloaded `LingoEnglish-1.9.apk` from the v1.9 release: SHA-256 matches `1d37c06a…`, V2 certificate matches, version is `1.9` (`10`), and size is 72,997,289 bytes. Reinstalled with `adb install -r` over the existing 1.9 build; version and local data were preserved. |
+| 1.9.1 patch build | `:app:testDebugUnitTest` 28/28; `:app:lintRelease` 0 errors, 43 non-blocking warnings; release APK 72,997,297 bytes. |
+| 1.9.1 signature / badging | APK Signature Scheme v2, `CN=Android Debug`, certificate SHA-256 `3888438c2652dff2a67d2953996eddc0b83ff8f6f4167a5161e6794c766c1df3`; version `1.9.1` (`11`), min SDK 26, target SDK 37. |
+| 1.9.1 phone regression | Installed with `adb install -r` over the debug build; opened the real `u2-l1` creative step with the owner’s 2,089-line draft, checked it, finished the lesson, and reached `Lesson complete!` with no crash. The pre-test progress backup was restored afterward. |
+| Signature / badging (v1.9 baseline) | APK Signature Scheme v2, `CN=Android Debug`, certificate SHA-256 `3888438c2652dff2a67d2953996eddc0b83ff8f6f4167a5161e6794c766c1df3`; version `1.9` (`10`), min SDK 26, target SDK 37. |
+| Published asset (v1.9 baseline) | Downloaded `LingoEnglish-1.9.apk` from the v1.9 release: SHA-256 matches `1d37c06a…`, V2 certificate matches, version is `1.9` (`10`), and size is 72,997,289 bytes. Reinstalled with `adb install -r` over the existing 1.9 build; version and local data were preserved. |
 | Cutscene data flow review | `CutscenePolicy` reads a version code and lesson ID sets; `CutsceneContent` is a static map; `CutsceneScreen` has no network, storage, or permission calls. The only write is the local “seen” marker. |
 | Recovery-link review | `lingo://reset-password` still skips the launch, is handled in memory, and does not mark the version seen. The custom-scheme risk remains A-02. |
 
@@ -146,3 +162,8 @@ custom-scheme recovery link being the two medium items. Release SHA-256 is
 published at [v1.9](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9); the
 downloaded asset hash and signature match the reviewed APK. The signing-key migration is
 planned for a later version.
+
+The 1.9.1 patch changes only the creative field's line cap and adds no new permissions,
+dependencies, network paths, storage fields, or exported components. Its release
+SHA-256 is `60dd5d0903448bc980ab1a836ea56dc58d8b70541323c3feeb2f728f61e76cba`;
+the local release-candidate build and the full phone regression are recorded above.
