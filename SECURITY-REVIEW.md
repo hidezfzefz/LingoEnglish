@@ -23,9 +23,10 @@ RLS, LiveKit, or backup behavior.
 | Version | `1.9.1` (`versionCode 11`) |
 | APK | `app-release.apk`, 72,997,297 bytes |
 | Published | [v1.9.1](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9.1) |
-| CI | Content audit — pass on the v1.9.1 source commit |
+| CI | [Content audit 41923416312](https://github.com/hidezfzefz/LingoEnglish/actions/runs/41923416312) — pass |
 | SHA-256 | `60dd5d0903448bc980ab1a836ea56dc58d8b70541323c3feeb2f728f61e76cba` |
 | Signature | APK Signature Scheme v2, `CN=Android Debug` (see A-01) |
+| Published asset | Downloaded `LingoEnglish-1.9.1.apk` from the v1.9.1 release: SHA-256, V2 certificate, size, and version match the tested APK. Installed with `adb install -r` over the existing 1.9.1 build; the signed-in session and 179 XP were preserved. |
 | Minimum / target SDK | 26 / 37 |
 
 The app is distributed as a sideloaded APK from GitHub. There is no Play Store listing,

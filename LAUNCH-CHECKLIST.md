@@ -12,7 +12,7 @@
 | A2 Travel finish crash fixed | **Done** | The owner’s `u2-l1` creative draft is 112,356 characters across 2,089 lines. The unbounded `OutlinedTextField` measured 262,994 px, above Compose’s 262,143 px constraint limit. `ExerciseView.kt` now caps the field at 8 visible lines with internal scrolling; the full draft is preserved. |
 | Patch build and phone QA | **Done** | `:app:testDebugUnitTest` 28/28; `:app:lintRelease` 0 errors, 43 non-blocking warnings. Debug and release candidates both opened the real creative step with the 2,089-line draft, checked it, finished the lesson, and reached `Lesson complete!` with `+35 XP` / `4/4`; no `FATAL EXCEPTION` in logcat. |
 | Owner data preserved | **Done** | The pre-test progress backup was restored byte-for-byte (SHA-256 `0d7b986e…`). Final phone state: release `1.9.1` (`11`), signed-in session, 1-day streak, 179 XP, and `u2-l1` still incomplete. |
-| Patch artifact verified | **Done** | `app-release.apk`, 72,997,297 bytes, SHA-256 `60dd5d09…`, V2 certificate `3888438c…`, version `1.9.1` (`11`). |
+| Patch artifact verified | **Done** | Published at [v1.9.1](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9.1); CI [41923416312](https://github.com/hidezfzefz/LingoEnglish/actions/runs/41923416312) is green on `2c97acf`. The downloaded `LingoEnglish-1.9.1.apk` matches SHA-256 `60dd5d09…`, V2 certificate `3888438c…`, version `1.9.1` (`11`), and 72,997,297 bytes. It installed with `adb install -r` over the existing 1.9.1 build; cold start 1.470 s, with 179 XP and the signed-in session preserved. |
 
 The v1.9 checklist below remains as the baseline evidence for the release line.
 Web-only items are marked **N/A** with the reason, rather than left implicit.

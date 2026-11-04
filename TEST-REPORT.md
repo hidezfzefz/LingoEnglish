@@ -48,7 +48,15 @@ Final patch artifact:
 | SHA-256 | `60dd5d0903448bc980ab1a836ea56dc58d8b70541323c3feeb2f728f61e76cba` |
 | Signature | APK Signature Scheme v2, `CN=Android Debug`, cert SHA-256 `3888438c…` (accepted risk A-01) |
 | Version | `1.9.1` (`versionCode 11`), min SDK 26, target SDK 37 |
+| CI | Pass — [Content audit 41923416312](https://github.com/hidezfzefz/LingoEnglish/actions/runs/41923416312) |
 | Release | [v1.9.1](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9.1) |
+| Release asset | Downloaded from the v1.9.1 release; SHA-256, V2 certificate, size, and version match the tested APK |
+
+Post-release verification (2026-11-04): the published `LingoEnglish-1.9.1.apk` was
+downloaded again, its SHA-256 matched, and it installed with `adb install -r`
+over the existing 1.9.1 release on the phone. The version stayed `1.9.1` (`11`),
+the cold start reached Home in 1.470 s, and the signed-in session, 1-day streak,
+and 179 XP were preserved. `u2-l1` remains incomplete at 0/80 XP.
 
 ---
 
