@@ -30,6 +30,12 @@ Final release artifact:
 | Release | [v1.9](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9) |
 | Release asset | Downloaded from the v1.9 release; SHA-256, V2 certificate, size, and version match the tested APK |
 
+Post-release verification (2026-11-04): the published `LingoEnglish-1.9.apk` was downloaded
+again, its SHA-256 matched, and it installed with `adb install -r` over the existing 1.9
+release on the phone. The version stayed `1.9` (`10`), the cold start reached Home in
+1.079 s, and the signed-in session, 1-day streak, and 179 XP were preserved. The earlier
+over-install snapshot in this report recorded 133 XP; the owner has used the app since.
+
 ## v1.9 changes under test
 
 - `CutscenePolicy`: full launch once per app version, sting on later cold starts,

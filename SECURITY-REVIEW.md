@@ -107,7 +107,7 @@ bundled strings selected in Compose state.
 | APK content scan | One JWT: the expected public Supabase anon token (`role=anon`). No service-role key, LiveKit secret, SMTP password, Supabase access token, database password, or private-key material. |
 | Merged release manifest | Eight normal permissions (`INTERNET`, `ACCESS_NETWORK_STATE`, `RECORD_AUDIO`, `MODIFY_AUDIO_SETTINGS`, `BLUETOOTH`, `BLUETOOTH_CONNECT`, `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`) plus the AndroidX dynamic-receiver permission; no camera, foreground-service, media-projection, or screen-capture entries. Only `MainActivity` and the DUMP-guarded profile installer receiver are exported. |
 | Signature / badging | APK Signature Scheme v2, `CN=Android Debug`, certificate SHA-256 `3888438c2652dff2a67d2953996eddc0b83ff8f6f4167a5161e6794c766c1df3`; version `1.9` (`10`), min SDK 26, target SDK 37. |
-| Published asset | Downloaded `LingoEnglish-1.9.apk` from the v1.9 release: SHA-256 matches `1d37c06a…`, V2 certificate matches, version is `1.9` (`10`), and size is 72,997,289 bytes. |
+| Published asset | Downloaded `LingoEnglish-1.9.apk` from the v1.9 release: SHA-256 matches `1d37c06a…`, V2 certificate matches, version is `1.9` (`10`), and size is 72,997,289 bytes. Reinstalled with `adb install -r` over the existing 1.9 build; version and local data were preserved. |
 | Cutscene data flow review | `CutscenePolicy` reads a version code and lesson ID sets; `CutsceneContent` is a static map; `CutsceneScreen` has no network, storage, or permission calls. The only write is the local “seen” marker. |
 | Recovery-link review | `lingo://reset-password` still skips the launch, is handled in memory, and does not mark the version seen. The custom-scheme risk remains A-02. |
 
