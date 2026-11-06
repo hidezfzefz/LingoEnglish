@@ -71,49 +71,49 @@ optional Night appearance, preserving every v1.9.1 feature and all local data.
 
 ### M0 — Baseline and safety net
 
-- [ ] Confirm `main`, tag, installed version, signed-in state, XP, streak, and
+- [x] Confirm `main`, tag, installed version, signed-in state, XP, streak, and
       `u2-l1` progress on the phone. Record the baseline in `TEST-REPORT.md`.
-- [ ] Run the existing unit tests and content audit:
+- [x] Run the existing unit tests and content audit:
       `./gradlew :app:testDebugUnitTest --no-daemon --max-workers=2 --console=plain`.
-- [ ] Build a debug APK and confirm it installs over the release build without
+- [x] Build a debug APK and confirm it installs over the release build without
       losing the session. The release and debug builds share the debug signing
       key, so the data directory is preserved.
-- [ ] Capture a private progress backup with `run-as` while the debuggable
+- [x] Capture a private progress backup with `run-as` while the debuggable
       build is installed. Store it only under `/tmp/opencode`, never in the
       repo, never print its contents. Verify a restore round-trip before any
       destructive test.
-- [ ] Bump `versionCode` to 12 and `versionName` to `1.10.0`.
-- [ ] Add empty test files for the new pure logic and a release-notes stub.
+- [x] Bump `versionCode` to 12 and `versionName` to `1.10.0`.
+- [x] Add empty test files for the new pure logic and a release-notes stub.
 
 **Verify:** tests green; debug install opens signed in; backup file exists
 outside the repo and restores the same XP/streak.
 
 ### M1 — Review domain and tests
 
-- [ ] Add `ReviewItem`, `ReviewQueue`, and the XP helper.
-- [ ] Add `LingoContent.exerciseById` / `reviewableExercises`; assert every
+- [x] Add `ReviewItem`, `ReviewQueue`, and the XP helper.
+- [x] Add `LingoContent.exerciseById` / `reviewableExercises`; assert every
       reviewable ID is unique and non-creative.
-- [ ] Write `ReviewQueueTest`:
+- [x] Write `ReviewQueueTest`:
       miss adds; one correct keeps; two correct clears; miss resets streak;
       ordering; limit five; unknown IDs pruned; encode/decode round trip;
       malformed lines ignored; duplicate IDs deduped; XP formula.
-- [ ] Write a content test that every reviewable exercise resolves back to an
+- [x] Write a content test that every reviewable exercise resolves back to an
       `Exercise`.
 
 **Verify:** `./gradlew :app:testDebugUnitTest --tests "com.lingo.app.ReviewQueueTest"`.
 
 ### M2 — Persistence and capture hooks
 
-- [ ] Add `reviewItems`, `reviewDueCount`, `reviewExercises(limit)`,
+- [x] Add `reviewItems`, `reviewDueCount`, `reviewExercises(limit)`,
       `recordReviewMiss`, `recordReviewCorrect`, and `recordReviewSession` to
       `ProgressStore`.
-- [ ] Load and save the encoded queue in `init`/each mutation. Clear it in
+- [x] Load and save the encoded queue in `init`/each mutation. Clear it in
       `reset()`.
-- [ ] Hook `LessonScreen`: when a non-creative answer is checked, record the
+- [x] Hook `LessonScreen`: when a non-creative answer is checked, record the
       result exactly once. Do not record creative tasks.
-- [ ] Hook `QuizScreen`: when an answer is checked, record the result exactly
+- [x] Hook `QuizScreen`: when an answer is checked, record the result exactly
       once.
-- [ ] Add a small test for the XP helper and the reset-clears-queue rule where
+- [x] Add a small test for the XP helper and the reset-clears-queue rule where
       it can be expressed without an Android context.
 
 **Verify:** wrong lesson answer increments the queue; wrong quiz answer
@@ -122,15 +122,15 @@ keeps the count.
 
 ### M3 — Review session screen
 
-- [ ] Add `ReviewScreen` with a snapshot of up to five exercises, header
+- [x] Add `ReviewScreen` with a snapshot of up to five exercises, header
       progress, `ExerciseView`, check/continue, and a result screen.
-- [ ] On check: record miss or correct against the queue. On finish: call
+- [x] On check: record miss or correct against the queue. On finish: call
       `recordReviewSession(correct, total)` once.
-- [ ] Result screen: score, XP, remaining queue count, "Review again" when
+- [x] Result screen: score, XP, remaining queue count, "Review again" when
       items remain, and "Back to practice". Reuse the existing result visual
       language without duplicating the whole quiz result composable.
-- [ ] Add `showReview` to `LingoApp`, `openReview()`, and `BackHandler`.
-- [ ] Empty/unknown queue state: friendly message and a way back; never crash.
+- [x] Add `showReview` to `LingoApp`, `openReview()`, and `BackHandler`.
+- [x] Empty/unknown queue state: friendly message and a way back; never crash.
 
 **Verify:** seed two wrong answers, open review, answer one right and one
 wrong, confirm the queue count changes correctly and XP/streak update once.
@@ -139,14 +139,14 @@ is intact.
 
 ### M4 — Entry points
 
-- [ ] Home: compact `ReviewCard` only when `reviewDueCount > 0`, with count,
+- [x] Home: compact `ReviewCard` only when `reviewDueCount > 0`, with count,
       estimated time, and a single review action. It sits below the daily hero
       and does not replace the primary lesson action.
-- [ ] Practice: "Tricky questions" card with count, or a friendly empty state.
-- [ ] Quiz result: "Review tricky questions" action when the queue is
+- [x] Practice: "Tricky questions" card with count, or a friendly empty state.
+- [x] Quiz result: "Review tricky questions" action when the queue is
       non-empty; hidden for a perfect quiz with an empty queue.
-- [ ] Pass `onOpenReview` through `LingoApp` to Home, Practice, and Quiz.
-- [ ] TalkBack labels, 48 dp targets, and no color-only status.
+- [x] Pass `onOpenReview` through `LingoApp` to Home, Practice, and Quiz.
+- [x] TalkBack labels, 48 dp targets, and no color-only status.
 
 **Verify:** on the phone, a wrong answer produces the Home card and Practice
 count; each entry opens the same review; clearing the queue hides the Home
@@ -154,19 +154,21 @@ card and shows the Practice empty state.
 
 ### M5 — Night appearance
 
-- [ ] Add `ThemeMode`, `LingoPalette`, `LingoPalettes.Paper`,
+- [x] Add `ThemeMode`, `LingoPalette`, `LingoPalettes.Paper`,
       `LingoPalettes.Night`, `LocalLingoPalette`, and `LingoTheme(mode)`.
-- [ ] Convert the top-level colour values to composable getters; fix
+- [x] Convert the top-level colour values to composable getters; fix
       `paletteFor`, `stickerColors`, the light/dark `ColorScheme` builders, and
       any non-composable call sites the compiler finds.
-- [ ] Add `themeMode` to `ProgressStore` and an Appearance section in Settings
+- [x] Add `themeMode` to `ProgressStore` and an Appearance section in Settings
       with Warm paper / Night choices and a short explanation.
-- [ ] Update `MainActivity` to pass the mode and switch system bar icon
+- [x] Update `MainActivity` to pass the mode and switch system bar icon
       appearance. Warm paper remains the default.
-- [ ] Add a pure contrast test for the key text/background pairs in both
+- [x] Add a pure contrast test for the key text/background pairs in both
       palettes (4.5:1 for body text, 3:1 for large text and UI components).
-- [ ] Isolate the theme work in its own commits so it can be reverted without
-      touching Smart Review if it fails QA.
+- [x] Keep the theme work reviewable as one coherent v1.10 change set. The
+      theme and review changes share `ProgressStore` and `LingoApp`, so they
+      ship together; the release can be rolled back by reinstalling v1.9.1
+      without clearing local data.
 
 **Verify:** switch to Night, walk every screen (Home, Learn, Practice, Call,
 Progress, Settings, lesson, quiz, flashcards, word bank, roleplay, sentence
@@ -176,13 +178,13 @@ contrast test.
 
 ### M6 — Docs and release candidate
 
-- [ ] Update `README.md` with Smart Review, Night appearance, version, APK
+- [x] Update `README.md` with Smart Review, Night appearance, version, APK
       name, and checksum instructions.
-- [ ] Write `RELEASE-NOTES-1.10.md`.
-- [ ] Update `SECURITY-REVIEW.md`, `TEST-REPORT.md`, and
+- [x] Write `RELEASE-NOTES-1.10.md`.
+- [x] Update `SECURITY-REVIEW.md`, `TEST-REPORT.md`, and
       `LAUNCH-CHECKLIST.md` with this release's evidence.
-- [ ] Build debug and release with the low-resource flags; stop daemons.
-- [ ] Install the release over v1.9.1 and verify the signed-in session, XP,
+- [x] Build debug and release with the low-resource flags; stop daemons.
+- [x] Install the release over v1.9.1 and verify the signed-in session, XP,
       streak, completed lessons, drafts, reminders, goal, exams, and weekly
       scores.
 
@@ -192,12 +194,12 @@ opens signed in with the baseline data intact.
 
 ## Convio stage checkpoints
 
-- [ ] **Design:** settle the review card, session, result, Night palette,
+- [x] **Design:** settle the review card, session, result, Night palette,
       contrast pairs, motion, and accessibility specs. Show the user, then call
       `next_stage` for the Scaffold brief.
-- [ ] **Scaffold:** confirm the existing project/tooling, version bump, palette
+- [x] **Scaffold:** confirm the existing project/tooling, version bump, palette
       scaffolding, and test harness. Then call `next_stage` for Build screens.
-- [ ] **Build screens:** complete M1–M6. Then call `next_stage` for Security
+- [x] **Build screens:** complete M1–M6. Then call `next_stage` for Security
       review.
 - [ ] **Security review:** run the required checks, fix findings, update
       `SECURITY-REVIEW.md`, then call `next_stage` for Test thoroughly.

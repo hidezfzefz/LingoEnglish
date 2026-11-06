@@ -1,10 +1,59 @@
-# Security review — Lingo English 1.9.1
+# Security review — Lingo English 1.10
 
-Reviewed: 2026-11-04
+Reviewed: 2026-11-06
 
-Scope: the Android app, its Supabase schema/RLS/Edge Functions, LiveKit token issuing, and the v1.9.1 release APK.
+Scope: the Android app, its Supabase schema/RLS/Edge Functions, LiveKit token issuing, and the v1.10 release APK.
 
 Reviewer: Lingo maintainers (self-review, no external penetration test).
+
+## 1.10 release
+
+Two local-only features are added: **Smart Review** and an optional **Night**
+appearance. Neither adds a permission, dependency, network endpoint, account,
+exported component, backend schema change, or new service.
+
+- **Review data.** `ProgressStore` adds the `review_items` preference: one
+  tab-separated line per queued exercise with the exercise ID, miss count,
+  consecutive-correct streak, and last-seen timestamp. Exercise IDs are checked
+  against `^[A-Za-z0-9_-]{1,80}$`, counts are range-checked, malformed lines and
+  duplicate IDs are ignored, and decoding is capped at 200 lines. The queue is
+  read only through `LingoContent.exerciseById`; an ID that no longer exists in
+  bundled content is filtered out before a session. There is no free text and
+  no learner-authored content in this field.
+- **Appearance data.** `theme_mode` stores only `PAPER` or `NIGHT`; an unknown
+  value falls back to Warm paper. It is a display preference and is not cleared
+  by **Reset progress**.
+- **Smart Review UI.** The session snapshots at most five bundled exercises,
+  reuses `ExerciseView`, records a miss or correct exactly once per checked
+  answer, and awards XP through the existing `addTotalXp`/`recordStudy` path.
+  It adds no WebView, file access, intent handling, logging, or network call.
+- **Night UI.** Palette values are compiled-in constants. Switching appearance
+  changes colors and system-bar icon flags only; it does not store or transmit
+  learner data.
+- **Capture hooks.** `LessonScreen` and `QuizScreen` record review outcomes only
+  for non-creative exercises. Creative `WRITE` tasks are excluded from the
+  reviewable set at the content layer as well as at the UI layer.
+
+## Release under review
+
+| Item | Value |
+| --- | --- |
+| Package | `com.lingo.app` |
+| Version | `1.10.0` (`versionCode 12`) |
+| APK | `app-release.apk`, 73,046,449 bytes |
+| Published | Pending v1.10.0 release |
+| CI | Pending v1.10.0 push |
+| SHA-256 | `9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1` |
+| Signature | APK Signature Scheme v2, `CN=Android Debug` (see A-01) |
+| Published asset | Pending; verify after publication. |
+| Minimum / target SDK | 26 / 37 |
+
+The app is distributed as a sideloaded APK from GitHub. There is no Play Store
+listing, payment flow, file upload, WebView, admin area, or server-side HTML
+rendering.
+
+The v1.9 and v1.9.1 sections below remain as baseline evidence for the release
+line.
 
 ## 1.9.1 patch
 
@@ -107,6 +156,14 @@ components, unsafe intents, logging of learner data, and unbounded input. The cu
 has no input field, no intent handling, and no logging. The creative chips are static
 bundled strings selected in Compose state.
 
+**No new v1.10 findings at code review.** The review queue was checked for
+injection through preference data, unbounded decode, stale or unknown exercise
+IDs, and duplicate entries; each has a bound or filter. The theme preference
+was checked for unsafe enum parsing and falls back to Warm paper. Neither
+feature logs learner data, handles intents, or adds a network path. The v1.8
+findings S-01 to S-08 and the accepted risks A-01 to A-04 still apply; the
+scanner results for the final v1.10 APK are recorded below.
+
 ## Scanner and manual evidence
 
 | Check | Result |
@@ -168,3 +225,11 @@ The 1.9.1 patch changes only the creative field's line cap and adds no new permi
 dependencies, network paths, storage fields, or exported components. Its release
 SHA-256 is `60dd5d0903448bc980ab1a836ea56dc58d8b70541323c3feeb2f728f61e76cba`;
 the local release-candidate build and the full phone regression are recorded above.
+
+The v1.10 release adds two local preferences and a pure-UI theme. It adds no
+permissions, dependencies, network endpoints, accounts, exported components, or
+backend schema. The queue decoder is bounded and validates every field, and the
+theme enum falls back safely. The release SHA-256 is
+`9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1`; the
+release-candidate build, final scanner evidence, and the data-preserving
+over-install are recorded above and in `TEST-REPORT.md`.

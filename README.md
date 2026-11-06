@@ -11,27 +11,51 @@ creative, high-stakes conversations.
 
 Install the latest APK from the
 [Releases page](https://github.com/hidezfzefz/LingoEnglish/releases/latest).
-The current build is [Lingo English 1.9.1](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.9.1).
+The current build is [Lingo English 1.10.0](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.10.0).
 Android 8.0 (API 26) or newer is required.
 
 ```bash
-adb install -r LingoEnglish-1.9.1.apk
+adb install -r LingoEnglish-1.10.0.apk
 ```
 
-That release publishes `LingoEnglish-1.9.1.apk` and
-`LingoEnglish-1.9.1.apk.sha256`. Verify the download before installing:
+That release publishes `LingoEnglish-1.10.0.apk` and
+`LingoEnglish-1.10.0.apk.sha256`. Verify the download before installing:
 
 ```bash
-sha256sum -c LingoEnglish-1.9.1.apk.sha256
+sha256sum -c LingoEnglish-1.10.0.apk.sha256
 ```
 
-The v1.9.1 APK SHA-256 is
-`60dd5d0903448bc980ab1a836ea56dc58d8b70541323c3feeb2f728f61e76cba`
-(72,997,297 bytes). The v1.9 release remains available for its original notes.
+The v1.10.0 APK SHA-256 is
+`9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1`
+(73,046,449 bytes). The v1.9.1 release remains available for its original
+notes.
 
 The published APK is a sideload preview signed with the project's debug key.
 Keep that in mind if you plan to publish on Google Play: use your own release
 keystore and keep it out of version control.
+
+## What's new in 1.10
+
+- **Smart Review**: questions you miss in lessons, practice, or a weekly test
+  join a local review queue. A wrong answer adds the question or resets its
+  streak; one correct answer keeps it; two correct answers in a row clear it.
+  Review sessions take up to five questions at a time, show the same question
+  UI as the rest of the app, and earn quiz-style XP (4 per correct, plus a
+  10 XP bonus at 80% or better) toward your daily goal, streak, and active days.
+- **Review where you already are**: a Home card appears only when questions are
+  due, Practice has a “Tricky questions” card with the live count, and a quiz
+  result offers a review link after a miss. Review state and XP are stored on
+  the device alongside the rest of your progress.
+- **Optional Night appearance**: Settings now offers **Warm paper** (the
+  original look and the default) and **Night**, a dark forest-and-lime
+  appearance with the same type, stickers, and shapes. The choice is local,
+  survives restarts, and applies immediately to every screen, including system
+  bar icons. A learning reset does not change it.
+- Version 1.10 (versionCode 12) installs directly over 1.9.1 without clearing
+  the signed-in session, XP, streak, completed lessons, writing drafts,
+  reminders, daily goal, exam results, weekly scores, or the review queue.
+
+The full v1.10 release notes are in [RELEASE-NOTES-1.10.md](RELEASE-NOTES-1.10.md).
 
 ## What's new in 1.9.1
 
@@ -76,8 +100,14 @@ The full v1.9 release notes are in [RELEASE-NOTES-1.9.md](RELEASE-NOTES-1.9.md).
 - **A clearer next step on Home**: when a weekly test is due, a level exam is
   ready, or the path is complete, Home shows one recommendation card. It stays
   out of the way once the daily goal is met.
-- **6 units, 20 lessons, 45 teaching slides, and 80 exercises** covering
-  everyday English, travel, work, culture, and creative communication.
+- **6 units, 20 lessons, 45 teaching slides, and 103 exercises** — 83
+  auto-scorable questions plus 20 creative tasks — covering everyday English,
+  travel, work, culture, and creative communication.
+- **Smart Review** built from the 83 bundled auto-scorable questions: the
+  queue is local, capped at five questions per session, and clears an item only
+  after two consecutive correct answers.
+- **Warm paper or Night**: a two-choice appearance setting with a
+  WCAG-checked dark forest palette. Warm paper remains the default.
 - **20 guided “Create” tasks** — one per lesson. Learners invent, explain,
   paraphrase, negotiate, pitch, and tell stories, with success criteria,
   optional sentence starters, a word target, and a model answer.
@@ -166,7 +196,7 @@ app/build/outputs/apk/release/app-release.apk
 See [BUILDING.md](BUILDING.md) for the low-resource Gradle settings,
 [supabase/README.md](supabase/README.md) for backend deployment, auth,
 password recovery, LiveKit, and SMTP setup, and
-[SECURITY-REVIEW.md](SECURITY-REVIEW.md) for the v1.9.1 security review.
+[SECURITY-REVIEW.md](SECURITY-REVIEW.md) for the v1.10 security review.
 
 ## Release and rollback
 
@@ -183,12 +213,12 @@ password recovery, LiveKit, and SMTP setup, and
    A downgrade is only safe when the old version accepts the current local data;
    otherwise restore a device backup.
 
-Release builds use the project debug key for the 1.9 line so existing installs can
+Release builds use the project debug key for the 1.10 line so existing installs can
 update in place. That is an accepted sideload risk, documented as A-01 in
 [SECURITY-REVIEW.md](SECURITY-REVIEW.md); use a dedicated release keystore
 before any store distribution.
 
-The v1.9.1 and v1.9 launch evidence is in [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md),
+The v1.10, v1.9.1, and v1.9 launch evidence is in [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md),
 [TEST-PLAN.md](TEST-PLAN.md), and [TEST-REPORT.md](TEST-REPORT.md). Data handling
 is described in [PRIVACY.md](PRIVACY.md).
 

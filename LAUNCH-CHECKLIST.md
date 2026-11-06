@@ -1,9 +1,22 @@
-# Launch checklist — Lingo English 1.9.1
+# Launch checklist — Lingo English 1.10
 
-- Reviewed: 2026-11-04
-- Release: `1.9.1` (`versionCode 11`), APK signed with the project debug key
+- Reviewed: 2026-11-06
+- Release: `1.10.0` (`versionCode 12`), APK signed with the project debug key
 - Distribution: public GitHub Release, sideloaded APK (no Play Store listing)
-- Status: **published** — CI green, tag `v1.9.1`, and release assets published and verified
+- Status: **release candidate** — build and phone QA pass; publication pending
+
+## 1.10 release
+
+| Item | Status | Evidence / notes |
+| --- | --- | --- |
+| Smart Review and Night complete | **Done** | Smart Review queue, session, Home/Practice/quiz-result entry points, and the Warm paper/Night appearance setting are implemented and walked on the physical phone. The queue clears only after two consecutive correct answers; review XP uses the quiz formula and counts toward daily XP, goal, streak, and active days. |
+| Unit tests and lint | **Done** | `:app:testDebugUnitTest` 47/47; `:app:lintDebug` 0 errors, 44 warnings (all pre-existing `UseKtx` suggestions; no new category). |
+| Release build and artifact | **Done** | `:app:assembleRelease` successful; `app-release.apk` is 73,046,449 bytes with SHA-256 `9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1`. |
+| Phone QA and data preservation | **Done** | Release APK installed over the debug build with `adb install -r`; signed-in session, 270 XP, 3-day streak, 12 queued review items, completed lessons, drafts, reminders, daily goal, exam results, and weekly scores preserved. Cold start 892 ms (`am start -W`). The pre-test backup was restored byte-for-byte after the Night/weekly probes. |
+| Privacy and permissions unchanged | **Done** | No new permissions, camera, location, payments, network endpoints, backend schema, or exported components. Review state and appearance choice stay in local preferences. `PRIVACY.md` still describes the data accurately; the review queue contains exercise IDs and counters only, and the appearance choice is a device preference. |
+| Public release published and smoke-tested | **Pending** | To be completed after the tag and GitHub Release: verify CI, publish `LingoEnglish-1.10.0.apk` and `.sha256`, download the asset, match SHA-256/size/version, and over-install it on the phone. |
+
+The v1.9.1 and v1.9 sections below remain as baseline evidence for the release line.
 
 ## 1.9.1 patch
 

@@ -1,4 +1,120 @@
-# Test report — Lingo English 1.9.1
+# Test report — Lingo English 1.10
+
+## 1.10 release — Smart Review and optional Night
+
+- Build: `1.10.0` (`versionCode 12`), release APK signed with the debug key
+- Device: Samsung SM-A546E, Android 16 / API 36 (1080×2340, density 450, font
+  scale 1.0, portrait)
+- Test window: 2026-11-05 to 2026-11-06
+
+**Result: pass.** Both features were exercised on the physical phone with the
+owner still signed in and the display size, density, font scale, and rotation
+unchanged. The final release APK over-installed over the debug build with local
+data preserved, opened on the Home screen in 892 ms (`am start -W` TotalTime),
+and showed 270 XP, a 3-day streak, 12 queued review items, and Warm paper.
+
+### Smart Review
+
+- The queue is built from the 83 bundled auto-scorable exercises (60 lesson
+  questions, 23 practice-bank questions). Creative `WRITE` tasks are excluded
+  at the content layer and were never queued.
+- Controlled session: two consecutive correct answers cleared an item; a later
+  wrong answer reset its streak from 1 to 0, incremented misses from 1 to 2,
+  kept it queued, and awarded 0 XP. A 1/1 clear awarded 14 XP (4 correct + 10
+  bonus), and the total/daily XP, streak, and active-day state updated once.
+- Home hid the review card when the queue emptied; Practice showed the
+  “nothing tricky waiting” empty state. With items queued, Home showed the
+  count and estimated time, and Practice showed “12 waiting · start with 5”.
+- A wrong quiz answer revealed “Review tricky questions”; the link opened the
+  same review session, and Back returned to the preserved quiz result screen
+  with the score and answers intact.
+- The queue survived force-stop and relaunch. The review session itself
+  restarted safely instead of resuming a stale snapshot. No crash or ANR
+  occurred in any review path.
+- XP accounting was checked against the existing economy: review XP counts
+  toward total XP, the daily goal, streak, and active days, and does not change
+  quiz accuracy, perfect-quiz count, `todayQuizzes`, or the daily quick
+  challenge.
+
+### Night appearance
+
+- Settings switched between **Warm paper** and **Night** immediately, with a
+  check mark on the active choice. Warm paper remained the default for the
+  restored owner state, and Night survived force-stop/relaunch.
+- Night was walked on the phone across Home, Learn/level path, lesson slide,
+  lesson quiz, Practice, Real Talk, Word Tiles, Flashcards, Word bank, Call,
+  Progress, the Settings sheet, and the weekly test session. Text, controls,
+  progress bars, and stickers stayed readable in every screen.
+- The Settings sheet re-applied light status/navigation icons in Night after
+  the dialog window was attached; Warm paper showed dark icons. The launch
+  cutscene and call screens stayed on the Paper palette so their dark forest
+  treatment did not invert.
+- `DesignTokensTest` checks the key text/background pairs: body text at least
+  4.5:1, large text and UI components at least 3:1, in both palettes.
+- The Night fixes below were found during this walk and rechecked after the
+  final build.
+
+### Automated checks
+
+| Check | Result |
+| --- | --- |
+| `:app:testDebugUnitTest` | 47 tests, 0 failures (including `ReviewQueueTest`, `DesignTokensTest`, and the existing content/reminder/next-step/cutscene suites) |
+| `:app:lintDebug` | 0 errors, 44 warnings (all pre-existing `UseKtx` style suggestions; no new warning category) |
+| Release build | `:app:assembleRelease` successful; 73,046,449 bytes |
+| Debug build | `:app:assembleDebug` successful; debug and release both use the debug signing key, so the over-install preserved data |
+| Cold start | `am start -W`: TotalTime 892 ms, WaitTime 905 ms |
+| Release install | `adb install -r app-release.apk` over the debug build: Success; version `1.10.0` (`12`); signed-in owner state intact |
+
+Final release artifact:
+
+| Item | Value |
+| --- | --- |
+| APK | `app/build/outputs/apk/release/app-release.apk` |
+| Size | 73,046,449 bytes |
+| SHA-256 | `9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1` |
+| Signature | APK Signature Scheme v2, `CN=Android Debug`, cert SHA-256 `3888438c…` (accepted risk A-01) |
+| Version | `1.10.0` (`versionCode 12`), min SDK 26, target SDK 37 |
+| CI | Pending v1.10.0 push |
+| Release | Pending v1.10.0 publication |
+
+### Fixes made during testing
+
+1. **Settings sheet system bars.** Material created the modal sheet’s dialog
+   window with dark status/navigation icons even in Night. `SheetSystemBarAppearance()`
+   now finds the dialog window through `DialogWindowProvider` and re-applies the
+   active palette’s icon appearance after layout.
+2. **Level path background.** The level path list had no full-screen background
+   in Night, leaving a Paper-cream window behind unreadable header content and
+   white status icons. It now paints `Cream`, which resolves to the dark
+   background in Night and the original paper in Warm paper.
+3. **Small-text contrast.** `BackHeader` titles now use `Ink`; the word-bank
+   speaker uses `Ink`; the unsaved word-bank star uses `Muted`; the flashcard
+   peach speaker uses `CoralDeep`; the flashcard lime speaker and lesson
+   speaker use `Ink`/`palette.deep`. These replace cream-on-light fills that
+   fell below 4.5:1 in Night.
+
+### Data preservation and cleanup
+
+- The owner’s pre-test progress was backed up outside the repo to
+  `/tmp/opencode/lingo-v110-progress-backup-2026-11-05.tar` (SHA-256
+  `f1bae0de…`) and restored byte-for-byte after Night and weekly-test probes
+  (restored prefs SHA-256 `3c767c67…`).
+- The final state is the release build `1.10.0` (`12`), still signed in, with
+  270 XP, a 3-day streak, 12 queued review items, completed-lesson and draft
+  data intact, and Warm paper as the appearance.
+- No app data was cleared, the app was not uninstalled, and the owner was not
+  signed out.
+
+### Environment limits
+
+The v1.9 environment limits still apply: the owner’s accessibility settings
+were not changed, so 200% font, reduced motion, and TalkBack variants retain
+the v1.9 emulator evidence; fully signed-out, two-phone audio, physical-phone
+reminder tap, recovery-email delivery, and API 26 runtime remain owner checks
+or build/lint evidence. Night-specific TalkBack labels reuse the existing
+semantics; the appearance rows are `selectable` with `Role.RadioButton`.
+
+---
 
 ## 1.9.1 patch — A2 Travel lesson finish crash
 
