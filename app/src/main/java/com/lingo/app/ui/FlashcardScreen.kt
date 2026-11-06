@@ -296,6 +296,7 @@ private fun FlipCard(
                             onClick = onSpeak,
                             size = 48.dp,
                             background = Peach,
+                            tint = CoralDeep,
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
@@ -363,12 +364,13 @@ private fun FlipCard(
                                     onClick = onSpeak,
                                     size = 40.dp,
                                     background = Lime,
+                                    tint = Ink,
                                 )
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     "Tap to flip back",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Cream.copy(alpha = 0.5f),
+                                    color = OnBrandMuted,
                                 )
                             }
                         }
@@ -384,7 +386,7 @@ private fun FlipCard(
                             Icon(
                                 imageVector = Icons.Filled.Star,
                                 contentDescription = if (saved) "Remove saved word" else "Save word",
-                                tint = if (saved) Gold else Cream.copy(alpha = 0.35f),
+                                tint = if (saved) Gold else OnBrandMuted,
                                 modifier = Modifier.size(26.dp),
                             )
                         }

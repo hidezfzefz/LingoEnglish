@@ -62,6 +62,12 @@ class ProgressStore(context: Context) {
         private set
     var reminderMinute by mutableIntStateOf(prefs.getInt("reminder_minute", 0))
         private set
+    var themeMode by mutableStateOf(
+        runCatching {
+            ThemeMode.valueOf(prefs.getString("theme_mode", ThemeMode.PAPER.name)!!)
+        }.getOrDefault(ThemeMode.PAPER),
+    )
+        private set
     var completedLessons by mutableStateOf(prefs.getStringSet("completed_lessons", emptySet())?.toSet() ?: emptySet())
         private set
     var completedRoleplays by mutableStateOf(prefs.getStringSet("completed_roleplays", emptySet())?.toSet() ?: emptySet())
@@ -71,6 +77,8 @@ class ProgressStore(context: Context) {
     var masteredWords by mutableStateOf(prefs.getStringSet("mastered_words", emptySet())?.toSet() ?: emptySet())
         private set
     var savedWords by mutableStateOf(prefs.getStringSet("saved_words", emptySet())?.toSet() ?: emptySet())
+        private set
+    var reviewItems by mutableStateOf(ReviewQueue.decode(prefs.getString("review_items", "")))
         private set
     var quizAttempts by mutableIntStateOf(prefs.getInt("quiz_attempts", 0))
         private set
@@ -391,9 +399,64 @@ class ProgressStore(context: Context) {
         return xp
     }
 
+    /**
+     * Smart Review is local-only. [reviewDueCount] is the total valid queue,
+     * while [reviewExercises] returns the next session (up to five by default).
+     */
+    val reviewDueCount: Int
+        get() = ReviewQueue.due(
+            reviewItems,
+            LingoContent.reviewableIds,
+            ReviewQueue.MAX_ITEMS,
+        ).size
+
+    fun reviewExercises(limit: Int = ReviewQueue.SESSION_SIZE): List<Exercise> =
+        ReviewQueue.due(reviewItems, LingoContent.reviewableIds, limit)
+            .mapNotNull { LingoContent.exerciseById(it.exerciseId) }
+
+    fun recordReviewMiss(exerciseId: String) {
+        val updated = ReviewQueue.recordMiss(reviewItems, exerciseId, System.currentTimeMillis())
+        if (updated != reviewItems) {
+            reviewItems = updated
+            persistReviewItems()
+        }
+    }
+
+    fun recordReviewCorrect(exerciseId: String) {
+        val updated = ReviewQueue.recordCorrect(reviewItems, exerciseId, System.currentTimeMillis())
+        if (updated != reviewItems) {
+            reviewItems = updated
+            persistReviewItems()
+        }
+    }
+
+    /**
+     * Finishes a review session with the quiz XP formula, but deliberately
+     * leaves quiz attempts, accuracy, perfect quizzes and the daily challenge
+     * counter untouched: review is a biased sample of past mistakes.
+     */
+    fun recordReviewSession(correct: Int, total: Int): Int {
+        if (total <= 0) return 0
+        val xp = ReviewQueue.reviewXp(correct, total)
+        addTotalXp(xp)
+        recordStudy()
+        return xp
+    }
+
+    private fun persistReviewItems() {
+        prefs.edit().putString("review_items", ReviewQueue.encode(reviewItems)).apply()
+    }
+
     fun updateDailyGoal(goal: Int) {
         dailyGoal = goal.coerceIn(10, 200)
         prefs.edit().putInt("daily_goal", dailyGoal).apply()
+    }
+
+    /** Appearance is a device preference; progress reset leaves it untouched. */
+    fun updateThemeMode(mode: ThemeMode) {
+        if (themeMode == mode) return
+        themeMode = mode
+        prefs.edit().putString("theme_mode", mode.name).apply()
     }
 
     fun updateRemindersEnabled(enabled: Boolean) {
@@ -445,6 +508,7 @@ class ProgressStore(context: Context) {
             .clear()
             .putInt("daily_goal", goal)
             .putInt("launch_cutscene_version", launchVersion)
+            .putString("theme_mode", themeMode.name)
             .apply()
         totalXp = 0
         streak = 0
@@ -457,6 +521,7 @@ class ProgressStore(context: Context) {
         solvedSentences = emptySet()
         masteredWords = emptySet()
         savedWords = emptySet()
+        reviewItems = emptyList()
         quizAttempts = 0
         quizCorrect = 0
         perfectQuizzes = 0

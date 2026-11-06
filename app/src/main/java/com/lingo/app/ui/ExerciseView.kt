@@ -328,12 +328,12 @@ private fun AudioPrompt(
                 Text(
                     text = if (playing) "Tap to hear it again" else "Tap to listen",
                     style = MaterialTheme.typography.titleSmall,
-                    color = Color(0xFF234A6E),
+                    color = Blue,
                 )
                 Text(
                     text = if (playing) "“$audioText”" else "Play the sentence, then choose an answer.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF416B8E),
+                    color = InkSoft,
                     fontStyle = if (playing) FontStyle.Italic else FontStyle.Normal,
                 )
             }
@@ -352,7 +352,7 @@ fun FeedbackBanner(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = if (correct) Color(0xFFE7F4EA) else Peach,
+        color = if (correct) Mint else Peach,
         border = null,
     ) {
         Row(Modifier.padding(16.dp)) {
@@ -364,7 +364,7 @@ fun FeedbackBanner(
             ) {
                 Text(
                     text = if (correct) "✓" else "!",
-                    color = PureWhite,
+                    color = if (correct) PureWhite else OnCoral,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                 )

@@ -6,75 +6,104 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingo.app.data.ThemeMode
 
-// A warm, editorial palette: cream paper, forest ink, and a fresh lime accent.
-// The canonical values live in LingoPalettes.Paper; these aliases keep the
-// existing screens source-compatible until the Night migration wires every
-// call site to LocalLingoPalette.
-val Cream = LingoPalettes.Paper.cream
-val Paper = LingoPalettes.Paper.paper
-val Ink = LingoPalettes.Paper.ink
-val InkSoft = LingoPalettes.Paper.inkSoft
-val Forest = LingoPalettes.Paper.forest
-val Emerald = LingoPalettes.Paper.emerald
-val Mint = LingoPalettes.Paper.mint
-val MintDeep = LingoPalettes.Paper.mintDeep
-val Lime = LingoPalettes.Paper.lime
-val LimeSoft = LingoPalettes.Paper.limeSoft
-val Coral = LingoPalettes.Paper.coral
-val CoralDeep = LingoPalettes.Paper.coralDeep
-val Peach = LingoPalettes.Paper.peach
-val Blue = LingoPalettes.Paper.blue
-val Sky = LingoPalettes.Paper.sky
-val Purple = LingoPalettes.Paper.purple
-val Lavender = LingoPalettes.Paper.lavender
-val Teal = LingoPalettes.Paper.teal
-val Seafoam = LingoPalettes.Paper.seafoam
-val DeepTeal = LingoPalettes.Paper.deepTeal
-val Gold = LingoPalettes.Paper.gold
-val Sand = LingoPalettes.Paper.sand
-val Line = LingoPalettes.Paper.line
-// Darkened from #6E7D75 so small secondary text clears 4.5:1 on cream,
-// paper, and sand surfaces (5.46:1, 5.74:1, and 4.88:1).
-val Muted = LingoPalettes.Paper.muted
-val Danger = LingoPalettes.Paper.danger
-val PureWhite = LingoPalettes.Paper.pureWhite
+// Dynamic aliases for the active appearance. The values come from
+// LingoPalettes.Paper or LingoPalettes.Night through LingoTheme, so existing
+// screens keep their call sites while following the learner's choice.
+val Cream: Color @Composable get() = LocalLingoPalette.current.cream
+val Paper: Color @Composable get() = LocalLingoPalette.current.paper
+val Ink: Color @Composable get() = LocalLingoPalette.current.ink
+val InkSoft: Color @Composable get() = LocalLingoPalette.current.inkSoft
+val Forest: Color @Composable get() = LocalLingoPalette.current.forest
+val Emerald: Color @Composable get() = LocalLingoPalette.current.emerald
+val Mint: Color @Composable get() = LocalLingoPalette.current.mint
+val MintDeep: Color @Composable get() = LocalLingoPalette.current.mintDeep
+val Lime: Color @Composable get() = LocalLingoPalette.current.lime
+val LimeSoft: Color @Composable get() = LocalLingoPalette.current.limeSoft
+val Coral: Color @Composable get() = LocalLingoPalette.current.coral
+val CoralDeep: Color @Composable get() = LocalLingoPalette.current.coralDeep
+val Peach: Color @Composable get() = LocalLingoPalette.current.peach
+val Blue: Color @Composable get() = LocalLingoPalette.current.blue
+val Sky: Color @Composable get() = LocalLingoPalette.current.sky
+val Purple: Color @Composable get() = LocalLingoPalette.current.purple
+val Lavender: Color @Composable get() = LocalLingoPalette.current.lavender
+val Teal: Color @Composable get() = LocalLingoPalette.current.teal
+val Seafoam: Color @Composable get() = LocalLingoPalette.current.seafoam
+val DeepTeal: Color @Composable get() = LocalLingoPalette.current.deepTeal
+val Gold: Color @Composable get() = LocalLingoPalette.current.gold
+val Sand: Color @Composable get() = LocalLingoPalette.current.sand
+val Line: Color @Composable get() = LocalLingoPalette.current.line
+// Paper uses #59685F so small secondary text clears 4.5:1 on cream, paper,
+// and sand; Night uses a light muted that clears the same bar on dark surfaces.
+val Muted: Color @Composable get() = LocalLingoPalette.current.muted
+val Danger: Color @Composable get() = LocalLingoPalette.current.danger
+val PureWhite: Color @Composable get() = LocalLingoPalette.current.pureWhite
 
 // New semantic tokens. OnCoral replaces white text on coral fills, which was
 // below 4.5:1 in the paper palette.
-val OnCoral = LingoPalettes.Paper.onCoral
-val OnBrandMuted = LingoPalettes.Paper.onBrandMuted
-val FocusRing = LingoPalettes.Paper.focus
+val OnCoral: Color @Composable get() = LocalLingoPalette.current.onCoral
+val OnBrandMuted: Color @Composable get() = LocalLingoPalette.current.onBrandMuted
+val FocusRing: Color @Composable get() = LocalLingoPalette.current.focus
 
-private val LingoColors = lightColorScheme(
-    primary = Forest,
-    onPrimary = Cream,
-    primaryContainer = Mint,
-    onPrimaryContainer = Forest,
-    secondary = Lime,
-    onSecondary = Ink,
-    secondaryContainer = LimeSoft,
-    onSecondaryContainer = Ink,
-    tertiary = Coral,
-    onTertiary = OnCoral,
-    tertiaryContainer = Peach,
-    onTertiaryContainer = Ink,
-    background = Cream,
-    onBackground = Ink,
-    surface = Paper,
-    onSurface = Ink,
-    surfaceVariant = Sand,
-    onSurfaceVariant = Muted,
-    outline = Line,
-    outlineVariant = Line,
-    error = Danger,
-    onError = PureWhite,
-)
+private fun lingoColorScheme(p: LingoPalette) = if (p.dark) {
+    androidx.compose.material3.darkColorScheme(
+        primary = p.forest,
+        onPrimary = p.cream,
+        primaryContainer = p.mint,
+        onPrimaryContainer = p.forest,
+        secondary = p.lime,
+        onSecondary = p.ink,
+        secondaryContainer = p.limeSoft,
+        onSecondaryContainer = p.ink,
+        tertiary = p.coral,
+        onTertiary = p.onCoral,
+        tertiaryContainer = p.peach,
+        onTertiaryContainer = p.ink,
+        background = p.cream,
+        onBackground = p.ink,
+        surface = p.paper,
+        onSurface = p.ink,
+        surfaceVariant = p.sand,
+        onSurfaceVariant = p.muted,
+        outline = p.line,
+        outlineVariant = p.line,
+        error = p.danger,
+        onError = p.pureWhite,
+    )
+} else {
+    lightColorScheme(
+        primary = p.forest,
+        onPrimary = p.cream,
+        primaryContainer = p.mint,
+        onPrimaryContainer = p.forest,
+        secondary = p.lime,
+        onSecondary = p.ink,
+        secondaryContainer = p.limeSoft,
+        onSecondaryContainer = p.ink,
+        tertiary = p.coral,
+        onTertiary = p.onCoral,
+        tertiaryContainer = p.peach,
+        onTertiaryContainer = p.ink,
+        background = p.cream,
+        onBackground = p.ink,
+        surface = p.paper,
+        onSurface = p.ink,
+        surfaceVariant = p.sand,
+        onSurfaceVariant = p.muted,
+        outline = p.line,
+        outlineVariant = p.line,
+        error = p.danger,
+        onError = p.pureWhite,
+    )
+}
 
 private val Serif = FontFamily.Serif
 private val Sans = FontFamily.SansSerif
@@ -196,11 +225,17 @@ val LingoShapes = Shapes(
 )
 
 @Composable
-fun LingoTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = LingoColors,
-        typography = LingoTypography,
-        shapes = LingoShapes,
-        content = content,
-    )
+fun LingoTheme(
+    mode: ThemeMode = ThemeMode.PAPER,
+    content: @Composable () -> Unit,
+) {
+    val palette = LingoPalettes.of(mode)
+    CompositionLocalProvider(LocalLingoPalette provides palette) {
+        MaterialTheme(
+            colorScheme = lingoColorScheme(palette),
+            typography = LingoTypography,
+            shapes = LingoShapes,
+            content = content,
+        )
+    }
 }

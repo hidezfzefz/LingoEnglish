@@ -46,6 +46,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -76,8 +77,27 @@ import com.lingo.app.data.LivePeer
 import com.lingo.app.data.StickerKind
 import java.util.Locale
 
+/**
+ * Live calls keep the dark forest treatment in both appearances, so this
+ * screen pins itself to the Paper palette instead of following Night.
+ */
 @Composable
 fun CallSessionScreen(
+    callStore: CallStore,
+    onExit: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    CompositionLocalProvider(LocalLingoPalette provides LingoPalettes.Paper) {
+        CallSessionContent(
+            callStore = callStore,
+            onExit = onExit,
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun CallSessionContent(
     callStore: CallStore,
     onExit: () -> Unit,
     modifier: Modifier = Modifier,

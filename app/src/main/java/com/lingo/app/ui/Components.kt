@@ -73,12 +73,16 @@ data class AccentPalette(
     val deep: Color,
 )
 
-fun paletteFor(accent: Accent): AccentPalette = when (accent) {
-    Accent.GREEN -> AccentPalette(Emerald, Mint, Forest)
-    Accent.CORAL -> AccentPalette(Coral, Peach, CoralDeep)
-    Accent.BLUE -> AccentPalette(Blue, Sky, Color(0xFF234A6E))
-    Accent.PURPLE -> AccentPalette(Purple, Lavender, Color(0xFF453572))
-    Accent.TEAL -> AccentPalette(Teal, Seafoam, DeepTeal)
+@Composable
+fun paletteFor(accent: Accent): AccentPalette {
+    val dark = LocalLingoPalette.current.dark
+    return when (accent) {
+        Accent.GREEN -> AccentPalette(Emerald, Mint, Forest)
+        Accent.CORAL -> AccentPalette(Coral, Peach, CoralDeep)
+        Accent.BLUE -> AccentPalette(Blue, Sky, if (dark) Blue else Color(0xFF234A6E))
+        Accent.PURPLE -> AccentPalette(Purple, Lavender, if (dark) Purple else Color(0xFF453572))
+        Accent.TEAL -> AccentPalette(Teal, Seafoam, DeepTeal)
+    }
 }
 
 @Composable
@@ -380,6 +384,7 @@ fun BackHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
+            color = Ink,
             modifier = Modifier.weight(1f),
         )
         trailing?.invoke()
@@ -516,9 +521,9 @@ fun ChoiceOption(
     }
     val background = when (state) {
         OptionState.DEFAULT -> Paper
-        OptionState.SELECTED -> MintSoft
-        OptionState.CORRECT -> Color(0xFFE0F2E5)
-        OptionState.WRONG -> Color(0xFFFBE7E2)
+        OptionState.SELECTED -> Mint
+        OptionState.CORRECT -> Mint
+        OptionState.WRONG -> Peach
         OptionState.MUTED -> Paper
     }
     val letterBackground = when (state) {
@@ -555,7 +560,7 @@ fun ChoiceOption(
             if (state == OptionState.CORRECT) {
                 Text("✓", color = Cream, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             } else if (state == OptionState.WRONG) {
-                Text("×", color = Cream, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text("×", color = OnCoral, fontSize = 17.sp, fontWeight = FontWeight.Bold)
             } else {
                 Text(
                     text = letter,
@@ -574,9 +579,6 @@ fun ChoiceOption(
     }
 }
 
-// Kept local so components don't depend on the theme's internal palette names.
-private val MintSoft = Color(0xFFF0F7EF)
-
 @Composable
 fun Confetti(
     modifier: Modifier = Modifier,
@@ -584,13 +586,14 @@ fun Confetti(
     seed: Int = 7,
 ) {
     val random = remember(seed) { Random(seed) }
-    val particles = remember(seed) {
+    val particleColors = listOf(Lime, Coral, Gold, Emerald, Purple, Blue)
+    val particles = remember(seed, particleColors) {
         List(particleCount) {
             ConfettiParticle(
                 x = random.nextFloat(),
                 delay = random.nextFloat() * 0.45f,
                 size = 5f + random.nextFloat() * 7f,
-                color = listOf(Lime, Coral, Gold, Emerald, Purple, Blue)[random.nextInt(6)],
+                color = particleColors[random.nextInt(particleColors.size)],
                 rotation = random.nextFloat() * 360f,
                 spin = -220f + random.nextFloat() * 440f,
                 drift = -0.12f + random.nextFloat() * 0.24f,

@@ -36,9 +36,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingo.app.data.Accent
 import com.lingo.app.data.LingoContent
 import com.lingo.app.data.PracticeMode
 import com.lingo.app.data.ProgressStore
@@ -56,6 +59,7 @@ fun PracticeScreen(
     onOpenWordBank: () -> Unit,
     onOpenRoleplay: () -> Unit,
     onOpenSentenceTiles: () -> Unit,
+    onOpenReview: () -> Unit,
 ) {
     val featuredWords = remember { LingoContent.words.shuffled().take(6) }
 
@@ -163,7 +167,7 @@ fun PracticeScreen(
                                     "${store.solvedSentences.size} of ${LingoContent.sentencePuzzles.size} built"
                                 },
                                 background = Lavender,
-                                accent = Color(0xFF453572),
+                                accent = paletteFor(Accent.PURPLE).deep,
                                 modifier = Modifier.weight(1f),
                                 onClick = onOpenSentenceTiles,
                             )
@@ -176,6 +180,11 @@ fun PracticeScreen(
         item {
             Column {
                 SectionHeader(title = "Choose a workout")
+                Spacer(Modifier.height(12.dp))
+                ReviewWorkoutCard(
+                    count = store.reviewDueCount,
+                    onOpenReview = onOpenReview,
+                )
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     ModeCard(
@@ -196,7 +205,7 @@ fun PracticeScreen(
                         title = "Listening",
                         subtitle = "Train your ear",
                         background = Sky,
-                        accent = Color(0xFF234A6E),
+                        accent = paletteFor(Accent.BLUE).deep,
                         modifier = Modifier.weight(1f),
                         onClick = { onOpenQuiz(PracticeMode.LISTENING) },
                     )
@@ -221,7 +230,7 @@ fun PracticeScreen(
                             "${store.savedWords.size} saved for later"
                         },
                         background = Lavender,
-                        accent = Color(0xFF453572),
+                        accent = paletteFor(Accent.PURPLE).deep,
                         modifier = Modifier.weight(1f),
                         onClick = onOpenWordBank,
                     )
@@ -296,6 +305,72 @@ fun PracticeScreen(
 }
 
 @Composable
+private fun ReviewWorkoutCard(
+    count: Int,
+    onOpenReview: () -> Unit,
+) {
+    val hasItems = count > 0
+    val shape = RoundedCornerShape(26.dp)
+    val modifier = Modifier
+        .fillMaxWidth()
+        .clip(shape)
+        .then(
+            if (hasItems) {
+                Modifier.clickable(
+                    onClickLabel = "Review $count tricky questions",
+                    role = Role.Button,
+                    onClick = onOpenReview,
+                )
+            } else {
+                Modifier
+            },
+        )
+    Surface(
+        modifier = modifier,
+        shape = shape,
+        color = if (hasItems) Peach else Mint,
+        border = BorderStroke(
+            1.dp,
+            if (hasItems) Coral.copy(alpha = 0.25f) else MintDeep,
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 17.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Sticker(kind = StickerKind.TARGET, size = 44.dp)
+            Spacer(Modifier.width(13.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = if (hasItems) "Tricky questions" else "Nothing tricky right now",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Ink,
+                )
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    text = if (hasItems) {
+                        "$count waiting · start with ${minOf(5, count)}"
+                    } else {
+                        "Missed questions will collect here for a quick review."
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = InkSoft,
+                )
+            }
+            if (hasItems) {
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "→",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = CoralDeep,
+                    modifier = Modifier.clearAndSetSemantics { },
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun DailyChallengeCard(
     streak: Int,
     todayDone: Boolean,
@@ -305,7 +380,7 @@ private fun DailyChallengeCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(30.dp))
-            .background(Brush.linearGradient(listOf(Coral, Color(0xFFD75B45)))),
+            .background(Brush.linearGradient(listOf(Coral, Color(0xFFE4684E)))),
     ) {
         DecorativeDots(
             modifier = Modifier
@@ -321,8 +396,8 @@ private fun DailyChallengeCard(
             ) {
                 Tag(
                     text = if (todayDone) "DONE FOR TODAY" else "DAILY CHALLENGE",
-                    background = Cream.copy(alpha = 0.18f),
-                    color = Cream,
+                    background = OnCoral.copy(alpha = 0.14f),
+                    color = OnCoral,
                 )
                 Spacer(Modifier.weight(1f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -335,7 +410,7 @@ private fun DailyChallengeCard(
                     Text(
                         "$streak",
                         style = MaterialTheme.typography.labelMedium,
-                        color = Cream,
+                        color = OnCoral,
                     )
                 }
             }
@@ -343,13 +418,13 @@ private fun DailyChallengeCard(
             Text(
                 text = "Five questions.\nA sharper you.",
                 style = MaterialTheme.typography.headlineLarge.copy(lineHeight = 34.sp),
-                color = Cream,
+                color = OnCoral,
             )
             Spacer(Modifier.height(7.dp))
             Text(
                 text = "A fresh mix of grammar, vocabulary, and listening.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Cream.copy(alpha = 0.75f),
+                color = OnCoral.copy(alpha = 0.8f),
             )
             Spacer(Modifier.height(18.dp))
             PrimaryButton(
@@ -364,7 +439,7 @@ private fun DailyChallengeCard(
             Text(
                 text = "5 questions · about 3 min · up to 30 XP",
                 style = MaterialTheme.typography.labelSmall,
-                color = Cream.copy(alpha = 0.65f),
+                color = OnCoral.copy(alpha = 0.8f),
             )
         }
     }

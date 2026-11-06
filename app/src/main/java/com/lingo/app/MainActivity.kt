@@ -7,9 +7,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.lingo.app.data.ThemeMode
 import com.lingo.app.ui.LingoApp
 import com.lingo.app.ui.LingoTheme
 
@@ -21,13 +23,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         recoveryIntent = intent
         openPracticeRequest = intent.wantsPractice()
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-        )
         val app = application as LingoApplication
+        applySystemBars(app.progressStore.themeMode)
         setContent {
-            LingoTheme {
+            val mode = app.progressStore.themeMode
+            LaunchedEffect(mode) {
+                applySystemBars(mode)
+            }
+            LingoTheme(mode = mode) {
                 LingoApp(
                     store = app.progressStore,
                     callStore = app.callStore,
@@ -53,6 +56,22 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    /** Night needs light status/navigation icons; Paper needs dark icons. */
+    private fun applySystemBars(mode: ThemeMode) {
+        enableEdgeToEdge(
+            statusBarStyle = if (mode == ThemeMode.NIGHT) {
+                SystemBarStyle.dark(Color.TRANSPARENT)
+            } else {
+                SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+            },
+            navigationBarStyle = if (mode == ThemeMode.NIGHT) {
+                SystemBarStyle.dark(Color.TRANSPARENT)
+            } else {
+                SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+            },
+        )
     }
 
     override fun onNewIntent(intent: Intent) {

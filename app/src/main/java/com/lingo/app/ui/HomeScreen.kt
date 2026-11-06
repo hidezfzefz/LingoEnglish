@@ -60,6 +60,7 @@ fun HomeScreen(
     onOpenQuiz: (PracticeMode) -> Unit,
     onOpenFlashcards: () -> Unit,
     onOpenWordBank: () -> Unit,
+    onOpenReview: () -> Unit,
     onOpenSettings: () -> Unit,
     onStartWeekly: () -> Unit,
     onStartLevelExam: (CefrLevel) -> Unit,
@@ -162,6 +163,15 @@ fun HomeScreen(
             )
         }
 
+        if (store.reviewDueCount > 0) {
+            item {
+                ReviewCard(
+                    count = store.reviewDueCount,
+                    onOpenReview = onOpenReview,
+                )
+            }
+        }
+
         recommendation?.let { step ->
             item {
                 NextStepCard(
@@ -249,6 +259,65 @@ fun HomeScreen(
 }
 
 @Composable
+private fun ReviewCard(
+    count: Int,
+    onOpenReview: () -> Unit,
+) {
+    val noun = if (count == 1) "question" else "questions"
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .clickable(
+                onClickLabel = "Review $count tricky $noun",
+                role = Role.Button,
+                onClick = onOpenReview,
+            ),
+        shape = RoundedCornerShape(24.dp),
+        color = Peach,
+        border = BorderStroke(1.dp, Coral.copy(alpha = 0.25f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 17.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Sticker(kind = StickerKind.TARGET, size = 44.dp)
+            Spacer(Modifier.width(13.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "SMART REVIEW",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = CoralDeep,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Tag("DUE", background = Paper, color = CoralDeep)
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "$count tricky $noun",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Ink,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = "Start with ${minOf(5, count)} · about 2 min",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = InkSoft,
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = "→",
+                style = MaterialTheme.typography.titleLarge,
+                color = CoralDeep,
+                modifier = Modifier.clearAndSetSemantics { },
+            )
+        }
+    }
+}
+
+@Composable
 private fun DailyHeroCard(
     lesson: Lesson,
     allComplete: Boolean,
@@ -331,7 +400,7 @@ private fun DailyHeroCard(
                             Text(
                                 text = "/ $dailyGoal XP",
                                 style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.4.sp),
-                                color = Cream.copy(alpha = 0.55f),
+                                color = OnBrandMuted,
                             )
                         }
                     }
@@ -347,7 +416,7 @@ private fun DailyHeroCard(
                             Text(
                                 text = "Every lesson complete · keep practicing",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Cream.copy(alpha = 0.6f),
+                                color = OnBrandMuted,
                             )
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -360,7 +429,7 @@ private fun DailyHeroCard(
                                 Text(
                                     text = "${lesson.minutes} min · +${lesson.xp} XP",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Cream.copy(alpha = 0.6f),
+                                    color = OnBrandMuted,
                                 )
                             }
                         }

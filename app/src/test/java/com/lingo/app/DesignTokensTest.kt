@@ -1,8 +1,8 @@
 package com.lingo.app
 
 import androidx.compose.ui.graphics.Color
+import com.lingo.app.data.ThemeMode
 import com.lingo.app.ui.LingoPalettes
-import com.lingo.app.ui.ThemeMode
 import kotlin.math.pow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

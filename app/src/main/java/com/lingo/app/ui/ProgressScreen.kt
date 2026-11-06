@@ -106,7 +106,7 @@ fun ProgressScreen(store: ProgressStore, onOpenLevelPath: () -> Unit = {}) {
                             Text(
                                 text = "LV",
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                                color = Cream.copy(alpha = 0.6f),
+                                color = OnBrandMuted,
                             )
                             Text(
                                 text = "${level.level}",
@@ -126,7 +126,7 @@ fun ProgressScreen(store: ProgressStore, onOpenLevelPath: () -> Unit = {}) {
                         Text(
                             text = "${store.totalXp} XP earned",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Cream.copy(alpha = 0.65f),
+                            color = OnBrandMuted,
                         )
                         Spacer(Modifier.height(12.dp))
                         ProgressLine(
@@ -139,7 +139,7 @@ fun ProgressScreen(store: ProgressStore, onOpenLevelPath: () -> Unit = {}) {
                         Text(
                             text = "${level.xpForNext - level.xpInLevel} XP to level ${level.level + 1}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Cream.copy(alpha = 0.55f),
+                            color = OnBrandMuted,
                         )
                     }
                 }

@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lingo.app.data.Accent
 import com.lingo.app.data.Exercise
 import com.lingo.app.data.LingoContent
 import com.lingo.app.data.PracticeMode
@@ -54,6 +56,7 @@ fun QuizScreen(
     store: ProgressStore,
     speaker: (String) -> Unit,
     onClose: () -> Unit,
+    onOpenReview: () -> Unit,
 ) {
     var attempt by rememberSaveable(mode.name) { mutableIntStateOf(0) }
     val questions = remember(mode, attempt) { LingoContent.questionsFor(mode, 5) }
@@ -63,12 +66,13 @@ fun QuizScreen(
     var correctCount by rememberSaveable(mode.name, attempt) { mutableIntStateOf(0) }
     var finished by rememberSaveable(mode.name, attempt) { mutableStateOf(false) }
     var awardedXp by rememberSaveable(mode.name, attempt) { mutableIntStateOf(0) }
+    var hadMiss by rememberSaveable(mode.name, attempt) { mutableStateOf(false) }
 
     val palette = when (mode) {
-        PracticeMode.DAILY -> AccentPalette(Coral, Peach, CoralDeep)
-        PracticeMode.LISTENING -> AccentPalette(Blue, Sky, Color(0xFF234A6E))
-        PracticeMode.GRAMMAR -> AccentPalette(Purple, Lavender, Color(0xFF453572))
-        PracticeMode.VOCABULARY -> AccentPalette(Emerald, Mint, Forest)
+        PracticeMode.DAILY -> paletteFor(Accent.CORAL)
+        PracticeMode.LISTENING -> paletteFor(Accent.BLUE)
+        PracticeMode.GRAMMAR -> paletteFor(Accent.PURPLE)
+        PracticeMode.VOCABULARY -> paletteFor(Accent.GREEN)
     }
 
     if (questions.isEmpty()) {
@@ -95,6 +99,9 @@ fun QuizScreen(
             total = questions.size,
             awardedXp = awardedXp,
             palette = palette,
+            reviewCount = store.reviewDueCount,
+            showReviewLink = hadMiss,
+            onOpenReview = onOpenReview,
             onTryAgain = {
                 attempt += 1
                 index = 0
@@ -103,6 +110,7 @@ fun QuizScreen(
                 correctCount = 0
                 finished = false
                 awardedXp = 0
+                hadMiss = false
             },
             onClose = onClose,
         )
@@ -219,7 +227,14 @@ fun QuizScreen(
                     text = "Check answer",
                     onClick = {
                         checked = true
-                        if (selected == question.correctIndex) correctCount += 1
+                        val correct = selected == question.correctIndex
+                        if (correct) {
+                            correctCount += 1
+                            store.recordReviewCorrect(question.id)
+                        } else {
+                            hadMiss = true
+                            store.recordReviewMiss(question.id)
+                        }
                     },
                     enabled = selected != null,
                     modifier = Modifier.fillMaxWidth(),
@@ -254,6 +269,9 @@ private fun QuizResult(
     total: Int,
     awardedXp: Int,
     palette: AccentPalette,
+    reviewCount: Int,
+    showReviewLink: Boolean,
+    onOpenReview: () -> Unit,
     onTryAgain: () -> Unit,
     onClose: () -> Unit,
 ) {
@@ -377,6 +395,48 @@ private fun QuizResult(
                 color = Muted,
                 fontStyle = FontStyle.Italic,
             )
+            if (showReviewLink && reviewCount > 0) {
+                Spacer(Modifier.height(20.dp))
+                val noun = if (reviewCount == 1) "question" else "questions"
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .clickable(
+                            onClickLabel = "Review $reviewCount tricky $noun",
+                            onClick = onOpenReview,
+                        ),
+                    shape = RoundedCornerShape(18.dp),
+                    color = Peach,
+                    border = BorderStroke(1.dp, Coral.copy(alpha = 0.25f)),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 13.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Sticker(kind = StickerKind.TARGET, size = 30.dp, elevated = false)
+                        Spacer(Modifier.width(10.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = "$reviewCount tricky $noun",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = Ink,
+                            )
+                            Text(
+                                text = "Review the ones you missed.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = InkSoft,
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "Review →",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = CoralDeep,
+                        )
+                    }
+                }
+            }
             Spacer(Modifier.height(28.dp))
             PrimaryButton(
                 text = "Try another round",

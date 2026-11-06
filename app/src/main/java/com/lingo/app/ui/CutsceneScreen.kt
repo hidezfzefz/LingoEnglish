@@ -211,19 +211,22 @@ fun LaunchCutscene(
 
 @Composable
 private fun LaunchBackdrop(modifier: Modifier = Modifier) {
+    val mintGlow = Mint.copy(alpha = 0.55f)
+    val peachGlow = Peach.copy(alpha = 0.32f)
+    val limeGlow = LimeSoft.copy(alpha = 0.45f)
     Canvas(modifier) {
         drawCircle(
-            color = Mint.copy(alpha = 0.55f),
+            color = mintGlow,
             radius = size.width * 0.42f,
             center = Offset(size.width * 0.08f, size.height * 0.08f),
         )
         drawCircle(
-            color = Peach.copy(alpha = 0.32f),
+            color = peachGlow,
             radius = size.width * 0.38f,
             center = Offset(size.width * 0.95f, size.height * 0.9f),
         )
         drawCircle(
-            color = LimeSoft.copy(alpha = 0.45f),
+            color = limeGlow,
             radius = size.width * 0.22f,
             center = Offset(size.width * 0.9f, size.height * 0.12f),
         )
@@ -238,6 +241,10 @@ private fun CutsceneMark(
 ) {
     val cardHeight = if (compact) 154.dp else 252.dp
     val logoSize = if (compact) 54.dp else 58.dp
+    val limeFaint = Lime.copy(alpha = 0.08f)
+    val limePath = Lime.copy(alpha = 0.18f)
+    val lime = Lime
+    val coral = Coral
     val pathFraction = if (compact) {
         (progress / 0.85f).coerceIn(0f, 1f)
     } else {
@@ -265,7 +272,7 @@ private fun CutsceneMark(
         ) {
             Canvas(Modifier.fillMaxSize()) {
                 drawCircle(
-                    color = Lime.copy(alpha = 0.08f),
+                    color = limeFaint,
                     radius = size.minDimension * 0.62f,
                     center = Offset(size.width * 0.92f, size.height * 0.08f),
                 )
@@ -278,7 +285,7 @@ private fun CutsceneMark(
                 }
                 drawPath(
                     path = path,
-                    color = Lime.copy(alpha = 0.18f),
+                    color = limePath,
                     style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round),
                 )
                 if (pathFraction > 0f) {
@@ -287,12 +294,12 @@ private fun CutsceneMark(
                     measure.getSegment(0f, measure.length * pathFraction, drawn, true)
                     drawPath(
                         path = drawn,
-                        color = Lime,
+                        color = lime,
                         style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round),
                     )
                     if (pathFraction >= 0.99f) {
                         drawCircle(
-                            color = Coral,
+                            color = coral,
                             radius = 5.dp.toPx(),
                             center = measure.getPosition(measure.length),
                         )

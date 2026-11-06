@@ -3,15 +3,7 @@ package com.lingo.app.ui
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-
-/**
- * The two appearances Lingo supports. Warm paper is the default for every
- * existing install; Night is an explicit choice in Settings.
- */
-enum class ThemeMode {
-    PAPER,
-    NIGHT,
-}
+import com.lingo.app.data.ThemeMode
 
 /**
  * One complete set of colour tokens. The names match the existing palette so

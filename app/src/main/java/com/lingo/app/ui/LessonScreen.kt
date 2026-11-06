@@ -208,7 +208,19 @@ fun LessonScreen(
                     text = if (exercise.isCreative) "Check my writing" else "Check answer",
                     onClick = {
                         checked = true
-                        if (exercise.isAnswerCorrect(selected, response)) correctCount += 1
+                        val correct = exercise.isAnswerCorrect(selected, response)
+                        if (correct) {
+                            correctCount += 1
+                        }
+                        // Creative tasks have no single correct answer; only
+                        // auto-scorable questions enter Smart Review.
+                        if (!exercise.isCreative) {
+                            if (correct) {
+                                store.recordReviewCorrect(exercise.id)
+                            } else {
+                                store.recordReviewMiss(exercise.id)
+                            }
+                        }
                     },
                     enabled = if (exercise.isCreative) {
                         exercise.wordCount(response) >= exercise.minWords
@@ -312,6 +324,7 @@ private fun SlideContent(
                             onClick = { speaker(example.phrase) },
                             size = 38.dp,
                             background = palette.soft,
+                            tint = palette.deep,
                         )
                     }
                 }

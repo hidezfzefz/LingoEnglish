@@ -329,6 +329,7 @@ private fun WordBankRow(
                     onClick = onSpeak,
                     size = 36.dp,
                     background = Cream,
+                    tint = Ink,
                 )
                 Spacer(Modifier.width(6.dp))
                 Box(
@@ -341,7 +342,7 @@ private fun WordBankRow(
                     Icon(
                         imageVector = Icons.Filled.Star,
                         contentDescription = if (saved) "Remove saved word" else "Save word",
-                        tint = if (saved) Gold else Line,
+                        tint = if (saved) Gold else Muted,
                         modifier = Modifier.size(26.dp),
                     )
                 }

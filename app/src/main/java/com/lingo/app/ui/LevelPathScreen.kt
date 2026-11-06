@@ -51,6 +51,7 @@ import com.lingo.app.data.StickerKind
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@Composable
 fun levelAccent(level: CefrLevel): Color = when (level) {
     CefrLevel.A1 -> Mint
     CefrLevel.A2 -> Sand
@@ -61,6 +62,7 @@ fun levelAccent(level: CefrLevel): Color = when (level) {
     CefrLevel.TOP -> LimeSoft
 }
 
+@Composable
 fun levelInk(level: CefrLevel): Color = when (level) {
     CefrLevel.B2 -> Purple
     CefrLevel.C1 -> Coral
@@ -110,6 +112,7 @@ fun LevelPathScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(Cream)
             .statusBarsPadding()
             .navigationBarsPadding(),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 32.dp),

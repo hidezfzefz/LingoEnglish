@@ -50,9 +50,6 @@ import com.lingo.app.data.ProgressStore
 import com.lingo.app.data.SentencePuzzle
 import com.lingo.app.data.StickerKind
 
-private val WorkshopPurple = Color(0xFF453572)
-private val WorkshopInk = Color(0xFF2E2352)
-
 private fun freshSessionIds(): String =
     LingoContent.sentencePuzzles.shuffled().take(5).joinToString("|") { it.id }
 
@@ -154,7 +151,7 @@ private fun SentenceRound(
                 Text(
                     "BUILD A SENTENCE",
                     style = MaterialTheme.typography.labelSmall,
-                    color = WorkshopPurple,
+                    color = Purple,
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
@@ -267,7 +264,7 @@ private fun SentenceRound(
                         onClick = { speaker(builtSentence) },
                         size = 34.dp,
                         background = Lavender,
-                        tint = WorkshopPurple,
+                        tint = Purple,
                     )
                 }
             }
@@ -301,7 +298,7 @@ private fun SentenceRound(
                 Text(
                     "Need a nudge?",
                     style = MaterialTheme.typography.labelMedium,
-                    color = WorkshopPurple,
+                    color = Purple,
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .clickable { showHint = true }
@@ -343,7 +340,7 @@ private fun SentenceRound(
                         },
                         enabled = placed.size == puzzle.tokens.size,
                         modifier = Modifier.fillMaxWidth(),
-                        container = WorkshopPurple,
+                        container = Purple,
                     )
                     if (placed.size < puzzle.tokens.size) {
                         Spacer(Modifier.height(6.dp))
@@ -361,7 +358,7 @@ private fun SentenceRound(
                         text = "Try again",
                         onClick = { checked = false },
                         modifier = Modifier.fillMaxWidth(),
-                        container = WorkshopPurple,
+                        container = Purple,
                     )
                 }
                 else -> {
@@ -369,7 +366,7 @@ private fun SentenceRound(
                         Text(
                             "Lovely work — +$earned XP",
                             style = MaterialTheme.typography.labelMedium,
-                            color = WorkshopPurple,
+                            color = Purple,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
                         )
@@ -379,7 +376,7 @@ private fun SentenceRound(
                         text = if (round + 1 >= total) "See results" else "Next sentence",
                         onClick = onNext,
                         modifier = Modifier.fillMaxWidth(),
-                        container = WorkshopPurple,
+                        container = Purple,
                         trailingArrow = true,
                     )
                 }
@@ -396,7 +393,7 @@ private fun PlacedWord(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(WorkshopPurple)
+            .background(Purple)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 9.dp),
     ) {
@@ -586,7 +583,7 @@ private fun WordTilesComplete(
                 text = "Back to practice",
                 onClick = onClose,
                 modifier = Modifier.fillMaxWidth(),
-                container = WorkshopPurple,
+                container = Purple,
                 trailingArrow = true,
             )
             Spacer(Modifier.height(10.dp))
@@ -616,12 +613,12 @@ private fun WordResultTile(
             modifier = Modifier.padding(vertical = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(value, style = MaterialTheme.typography.headlineSmall, color = WorkshopInk)
+            Text(value, style = MaterialTheme.typography.headlineSmall, color = Ink)
             Spacer(Modifier.height(2.dp))
             Text(
                 label,
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                color = WorkshopInk.copy(alpha = 0.65f),
+                color = Ink.copy(alpha = 0.65f),
                 textAlign = TextAlign.Center,
             )
         }
@@ -654,7 +651,7 @@ private fun WordTilesTopBar(
         Text(
             label,
             style = MaterialTheme.typography.labelSmall,
-            color = WorkshopPurple,
+            color = Purple,
         )
         Spacer(Modifier.weight(1f))
         Text(

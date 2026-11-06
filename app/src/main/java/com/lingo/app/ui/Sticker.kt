@@ -267,7 +267,10 @@ private fun stickerVector(kind: StickerKind): ImageVector = when (kind) {
     StickerKind.VOLUME -> Icons.Rounded.VolumeUp
 }
 
-private fun stickerColors(kind: StickerKind): StickerColors = when (kind) {
+@Composable
+private fun stickerColors(kind: StickerKind): StickerColors {
+    val dark = LocalLingoPalette.current.dark
+    return when (kind) {
     StickerKind.COFFEE,
     StickerKind.PILL,
     StickerKind.RESTAURANT,
@@ -290,7 +293,7 @@ private fun stickerColors(kind: StickerKind): StickerColors = when (kind) {
     StickerKind.HOUSE,
     StickerKind.TARGET,
     StickerKind.SMARTPHONE,
-    -> StickerColors(Sky, Color(0xFF234A6E))
+    -> StickerColors(Sky, if (dark) Blue else Color(0xFF234A6E))
 
     StickerKind.THEATER,
     StickerKind.MOVIE,
@@ -298,7 +301,7 @@ private fun stickerColors(kind: StickerKind): StickerColors = when (kind) {
     StickerKind.BALANCE,
     StickerKind.CALENDAR,
     StickerKind.SPEAK,
-    -> StickerColors(Lavender, Color(0xFF453572))
+    -> StickerColors(Lavender, if (dark) Purple else Color(0xFF453572))
 
     StickerKind.SETTINGS,
     StickerKind.BRIEFCASE,
@@ -307,7 +310,8 @@ private fun stickerColors(kind: StickerKind): StickerColors = when (kind) {
     StickerKind.STAR,
     StickerKind.SPARKLE,
     StickerKind.BELL,
-    -> StickerColors(Sand, Color(0xFF6A5836))
+    -> StickerColors(Sand, if (dark) Gold else Color(0xFF6A5836))
 
     else -> StickerColors(Mint, Forest)
+    }
 }

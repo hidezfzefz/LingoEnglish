@@ -2478,6 +2478,19 @@ object LingoContent {
     val allExercises: List<Exercise> =
         lessons.flatMap { it.exercises }.filter { it.kind != ExerciseKind.WRITE } + practiceBank
 
+    /** Stable content lookup for Smart Review; creative tasks are excluded. */
+    val reviewableExercises: List<Exercise> get() = allExercises
+
+    val reviewableIds: Set<String> by lazy {
+        allExercises.mapTo(LinkedHashSet()) { it.id }
+    }
+
+    private val exercisesById: Map<String, Exercise> by lazy {
+        allExercises.associateBy { it.id }
+    }
+
+    fun exerciseById(id: String): Exercise? = exercisesById[id]
+
     fun questionsFor(mode: PracticeMode, count: Int = 5): List<Exercise> {
         val pool = when (mode) {
             PracticeMode.DAILY -> allExercises.shuffled()

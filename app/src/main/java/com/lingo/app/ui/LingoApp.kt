@@ -5,6 +5,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.speech.tts.TextToSpeech
+import android.view.View
+import android.view.ViewParent
+import android.view.Window
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,6 +27,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,6 +38,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,6 +57,7 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,6 +72,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -74,7 +81,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.lingo.app.BuildConfig
@@ -90,6 +99,7 @@ import com.lingo.app.data.PracticeMode
 import com.lingo.app.data.ProgressStore
 import com.lingo.app.data.ReminderCopy
 import com.lingo.app.data.StickerKind
+import com.lingo.app.data.ThemeMode
 import com.lingo.app.data.TestKind
 import com.lingo.app.reminders.PracticeReminder
 import java.util.Locale
@@ -122,6 +132,7 @@ fun LingoApp(
     var showRoleplay by rememberSaveable { mutableStateOf(false) }
     var showSentenceTiles by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var reviewOrigin by rememberSaveable { mutableStateOf<String?>(null) }
     var showLevelPath by rememberSaveable { mutableStateOf(false) }
     var testKindName by rememberSaveable { mutableStateOf<String?>(null) }
     var testTargetName by rememberSaveable { mutableStateOf<String?>(null) }
@@ -148,6 +159,7 @@ fun LingoApp(
         showRoleplay = false
         showSentenceTiles = false
         showSettings = false
+        reviewOrigin = null
     }
 
     fun openTab(target: Tab) {
@@ -257,7 +269,8 @@ fun LingoApp(
     }
 
     val hasOverlay = lesson != null || quizMode != null || showFlashcards || showWordBank ||
-        showRoleplay || showSentenceTiles || callStore.phase != CallPhase.IDLE || showLevelPath || testKind != null
+        showRoleplay || showSentenceTiles || callStore.phase != CallPhase.IDLE || showLevelPath ||
+        testKind != null || reviewOrigin != null
     BackHandler(enabled = !launchCutsceneDone) {
         finishLaunchCutscene()
     }
@@ -265,6 +278,7 @@ fun LingoApp(
         when {
             testKind != null -> Unit
             callStore.phase != CallPhase.IDLE -> Unit
+            reviewOrigin != null -> reviewOrigin = null
             showLevelPath -> showLevelPath = false
             lesson != null -> {
                 lessonId = null
@@ -279,12 +293,21 @@ fun LingoApp(
         }
     }
 
+    val reviewBackLabel = when (reviewOrigin) {
+        "home" -> "Back to home"
+        "quiz" -> "Back to results"
+        else -> "Back to practice"
+    }
+
     when {
         !launchCutsceneDone -> {
-            LaunchCutscene(
-                mode = launchMode,
-                onFinished = { finishLaunchCutscene() },
-            )
+            // The brand sequence is intentionally dark in both appearances.
+            CompositionLocalProvider(LocalLingoPalette provides LingoPalettes.Paper) {
+                LaunchCutscene(
+                    mode = launchMode,
+                    onFinished = { finishLaunchCutscene() },
+                )
+            }
         }
 
         showEntryGate -> {
@@ -362,13 +385,24 @@ fun LingoApp(
         }
 
         quizMode != null -> {
-            key(quizMode.name) {
-                QuizScreen(
-                    mode = quizMode,
-                    store = store,
-                    speaker = speaker,
-                    onClose = { quizModeName = null },
-                )
+            Box(Modifier.fillMaxSize()) {
+                key(quizMode.name) {
+                    QuizScreen(
+                        mode = quizMode,
+                        store = store,
+                        speaker = speaker,
+                        onClose = { quizModeName = null },
+                        onOpenReview = { reviewOrigin = "quiz" },
+                    )
+                }
+                if (reviewOrigin != null) {
+                    ReviewOverlay(
+                        store = store,
+                        speaker = speaker,
+                        backLabel = reviewBackLabel,
+                        onClose = { reviewOrigin = null },
+                    )
+                }
             }
         }
 
@@ -405,6 +439,7 @@ fun LingoApp(
         }
 
         else -> {
+            Box(Modifier.fillMaxSize()) {
             Scaffold(
                 containerColor = Cream,
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -435,6 +470,7 @@ fun LingoApp(
                             onOpenQuiz = { quizModeName = it.name },
                             onOpenFlashcards = { showFlashcards = true },
                             onOpenWordBank = { showWordBank = true },
+                            onOpenReview = { reviewOrigin = "home" },
                             onOpenSettings = { showSettings = true },
                             onStartWeekly = { startWeekly() },
                             onStartLevelExam = { target -> startLevelExam(target) },
@@ -453,6 +489,7 @@ fun LingoApp(
                             onOpenWordBank = { showWordBank = true },
                             onOpenRoleplay = { showRoleplay = true },
                             onOpenSentenceTiles = { showSentenceTiles = true },
+                            onOpenReview = { reviewOrigin = "practice" },
                         )
 
                         Tab.COMMUNITY -> CallHubScreen(
@@ -479,7 +516,36 @@ fun LingoApp(
                     },
                 )
             }
+            if (reviewOrigin != null) {
+                ReviewOverlay(
+                    store = store,
+                    speaker = speaker,
+                    backLabel = reviewBackLabel,
+                    onClose = { reviewOrigin = null },
+                )
+            }
+            }
         }
+    }
+}
+
+@Composable
+private fun ReviewOverlay(
+    store: ProgressStore,
+    speaker: (String) -> Unit,
+    backLabel: String,
+    onClose: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Cream,
+    ) {
+        ReviewScreen(
+            store = store,
+            speaker = speaker,
+            backLabel = backLabel,
+            onClose = onClose,
+        )
     }
 }
 
@@ -594,6 +660,155 @@ private fun rememberSpeaker(): Speaker {
     }
 }
 
+@Composable
+private fun AppearanceSetting(
+    selected: ThemeMode,
+    onSelect: (ThemeMode) -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = Paper,
+        border = BorderStroke(1.dp, Line),
+    ) {
+        Column(Modifier.selectableGroup().padding(6.dp)) {
+            AppearanceRow(
+                title = "Warm paper",
+                detail = "Cream paper, forest ink",
+                swatches = listOf(
+                    LingoPalettes.Paper.cream,
+                    LingoPalettes.Paper.paper,
+                    LingoPalettes.Paper.forest,
+                    LingoPalettes.Paper.lime,
+                ),
+                selected = selected == ThemeMode.PAPER,
+                onClick = { onSelect(ThemeMode.PAPER) },
+            )
+            Box(
+                Modifier
+                    .padding(start = 64.dp, end = 14.dp)
+                    .height(1.dp)
+                    .fillMaxWidth()
+                    .background(Line.copy(alpha = 0.7f)),
+            )
+            AppearanceRow(
+                title = "Night",
+                detail = "Calm dark, same accents",
+                swatches = listOf(
+                    LingoPalettes.Night.cream,
+                    LingoPalettes.Night.paper,
+                    LingoPalettes.Night.forest,
+                    LingoPalettes.Night.coral,
+                ),
+                selected = selected == ThemeMode.NIGHT,
+                onClick = { onSelect(ThemeMode.NIGHT) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun AppearanceRow(
+    title: String,
+    detail: String,
+    swatches: List<Color>,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (selected) Mint else Paper)
+            .border(
+                width = 1.dp,
+                color = if (selected) Forest else Line,
+                shape = RoundedCornerShape(16.dp),
+            )
+            .selectable(
+                selected = selected,
+                role = Role.RadioButton,
+                onClick = onClick,
+            )
+            .padding(horizontal = 14.dp, vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(9.dp))
+                .border(1.dp, Line, RoundedCornerShape(9.dp)),
+        ) {
+            Row(Modifier.fillMaxSize()) {
+                swatches.forEach { color ->
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .background(color),
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, color = Ink)
+            Text(detail, style = MaterialTheme.typography.bodySmall, color = Muted)
+        }
+        Spacer(Modifier.width(10.dp))
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(if (selected) Forest else Color.Transparent)
+                .border(1.dp, if (selected) Forest else Line, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (selected) {
+                Text("✓", fontSize = 12.sp, color = Cream)
+            }
+        }
+    }
+}
+
+private fun View.dialogWindow(): Window? {
+    if (this is DialogWindowProvider) return window
+    var parent: ViewParent? = this.parent
+    while (parent != null) {
+        if (parent is DialogWindowProvider) return parent.window
+        parent = parent.parent
+    }
+    return null
+}
+
+/**
+ * Material reads the sheet's icon appearance from its content colour at
+ * dialog-creation time, which can miss a live Night switch. The sheet owns a
+ * separate window, so re-apply the appearance from the active palette once it
+ * is attached; otherwise the status/navigation icons stay dark in Night.
+ */
+@Composable
+private fun SheetSystemBarAppearance() {
+    val view = LocalView.current
+    val lightIcons = !LocalLingoPalette.current.dark
+    DisposableEffect(view, lightIcons) {
+        var disposed = false
+        val window = view.dialogWindow()
+        fun apply() {
+            if (disposed || window == null) return
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = lightIcons
+                isAppearanceLightNavigationBars = lightIcons
+            }
+        }
+        apply()
+        // The dialog applies its theme when it is shown; re-assert after the
+        // first layout pass so the learner's appearance wins.
+        view.post { apply() }
+        onDispose { disposed = true }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsSheet(
@@ -671,6 +886,7 @@ private fun SettingsSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = Paper,
+        contentColor = Ink,
         dragHandle = {
             Box(
                 Modifier
@@ -682,6 +898,7 @@ private fun SettingsSheet(
             )
         },
     ) {
+        SheetSystemBarAppearance()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -700,6 +917,25 @@ private fun SettingsSheet(
                 "Make Lingo fit your day.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Muted,
+            )
+            Spacer(Modifier.height(26.dp))
+            Text(
+                "APPEARANCE",
+                style = MaterialTheme.typography.labelSmall,
+                color = Muted,
+                modifier = Modifier.semantics { heading() },
+            )
+            Spacer(Modifier.height(10.dp))
+            AppearanceSetting(
+                selected = store.themeMode,
+                onSelect = store::updateThemeMode,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Applies right away. Saved on this phone.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Muted,
+                modifier = Modifier.padding(horizontal = 4.dp),
             )
             Spacer(Modifier.height(26.dp))
             Text(
