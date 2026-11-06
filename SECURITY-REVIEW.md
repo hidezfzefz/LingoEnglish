@@ -180,19 +180,59 @@ scanner results for the final v1.10 APK are recorded below.
 | 1.9.1 patch build | `:app:testDebugUnitTest` 28/28; `:app:lintRelease` 0 errors, 43 non-blocking warnings; release APK 72,997,297 bytes. |
 | 1.9.1 signature / badging | APK Signature Scheme v2, `CN=Android Debug`, certificate SHA-256 `3888438c2652dff2a67d2953996eddc0b83ff8f6f4167a5161e6794c766c1df3`; version `1.9.1` (`11`), min SDK 26, target SDK 37. |
 | 1.9.1 phone regression | Installed with `adb install -r` over the debug build; opened the real `u2-l1` creative step with the owner’s 2,089-line draft, checked it, finished the lesson, and reached `Lesson complete!` with no crash. The pre-test progress backup was restored afterward. |
+| gitleaks git (v1.10) | 0 findings across 29 commits, including the two v1.10 feature commits and the docs commit. |
+| gitleaks dir (v1.10) | 11 findings, all in ignored build outputs, `local.properties`, or `supabase/.env.local`; none tracked, none in the APK. The same 11 as v1.9. |
+| OSV querybatch (v1.10) | 204 resolved Maven modules from `releaseRuntimeClasspath`, 0 vulnerabilities. |
+| Semgrep v1.10 (`p/default` + `p/secrets`, Docker, 4 GB) | 1 warning: the expected exported launcher activity (A-04). No secrets or injection findings. 270 rules over 89 tracked files. |
+| MobSF 4.6.5 (v1.10) | Security score 60. 1 high (debug certificate, A-01), 9 warnings. Triage below: no unaccepted high or medium app-code finding. |
+| Android lint (v1.10) | `:app:lintDebug` 0 errors, 44 warnings; `:app:lintRelease` 0 errors, 45 warnings (37 `UseKtx`, 3 newer-dependency notices, 2 Compose width/height, 1 obsolete-SDK, 1 Gradle dependency, 1 AGP version). No security category. |
+| APK content scan (v1.10) | One JWT: the expected public Supabase anon token (`role=anon`, project ref `sfhfoffubbqdfpcvpjer`). No service-role key, LiveKit secret, SMTP password, Supabase access token, database password, or private-key material. |
+| Merged release manifest (v1.10) | The same eight normal permissions as v1.9 plus the AndroidX dynamic-receiver permission; no camera, foreground-service, media-projection, or screen-capture entries. Only `MainActivity` and the DUMP-guarded profile installer receiver are exported; no `debuggable` flag. |
+| 1.10 build | `:app:testDebugUnitTest` 47/47; `:app:lintRelease` 0 errors, 45 warnings; release APK 73,046,449 bytes. |
+| 1.10 signature / badging | APK Signature Scheme v2, `CN=Android Debug`, certificate SHA-256 `3888438c2652dff2a67d2953996eddc0b83ff8f6f4167a5161e6794c766c1df3`; version `1.10.0` (`12`), min SDK 26, target SDK 37. |
+| 1.10 phone regression | Installed with `adb install -r` over the debug build; signed-in session, 270 XP, 3-day streak, 12 review items, and Warm paper preserved; cold start 892 ms. |
+| v1.10 data-flow review | `ReviewQueue` validates IDs, counts, and timestamps; decode is capped at 200 lines and ignores malformed/duplicate entries; `due()` filters unknown IDs. `theme_mode` falls back to Warm paper on an unknown value. Neither path logs, handles intents, or calls the network. |
 | Signature / badging (v1.9 baseline) | APK Signature Scheme v2, `CN=Android Debug`, certificate SHA-256 `3888438c2652dff2a67d2953996eddc0b83ff8f6f4167a5161e6794c766c1df3`; version `1.9` (`10`), min SDK 26, target SDK 37. |
 | Published asset (v1.9 baseline) | Downloaded `LingoEnglish-1.9.apk` from the v1.9 release: SHA-256 matches `1d37c06a…`, V2 certificate matches, version is `1.9` (`10`), and size is 72,997,289 bytes. Reinstalled with `adb install -r` over the existing 1.9 build; version and local data were preserved. |
 | Cutscene data flow review | `CutscenePolicy` reads a version code and lesson ID sets; `CutsceneContent` is a static map; `CutsceneScreen` has no network, storage, or permission calls. The only write is the local “seen” marker. |
 | Recovery-link review | `lingo://reset-password` still skips the launch, is handled in memory, and does not mark the version seen. The custom-scheme risk remains A-02. |
 
-## Open risks accepted for v1.9
+## MobSF 4.6.5 triage (v1.10)
+
+MobSF scanned the release APK and reported a security score of 60. The score is
+driven by the accepted debug signing key, the Android 8.0 minimum, and the
+intentional local backup. Each finding was checked against the source and the
+APK:
+
+| MobSF finding | Severity | Where | Triage |
+| --- | --- | --- | --- |
+| Application signed with debug certificate | High | APK signature | Accepted A-01. The debug key is required for update continuity in this sideload line; a managed release key remains the next signing migration. |
+| App can be installed on Android 8.0 (minSdk 26) | Warning | Manifest | Accepted platform floor. Android 8.0 is the documented product requirement; the app targets API 37. |
+| Application data can be backed up (`allowBackup=true`) | Warning | Manifest | Accepted A-05. The auth preferences and legacy auth file are excluded; local learning progress is backed up by design. |
+| Exported `ProfileInstallReceiver` protected by `DUMP` | Warning | Manifest / AndroidX | Accepted A-04. `android.permission.DUMP` is a system-only signature permission; the receiver performs profile installation only. |
+| Files may contain hardcoded sensitive information | Warning | Mostly bundled libraries; `SecureSessionStorage` | False positive. The flagged `SecureSessionStorage` string is the file name `lingo_secure_auth`; no credential is hardcoded. |
+| IP address disclosure | Warning | Bundled SIP, Ktor, JNA libraries | False positive for app code. Lingo does not log or store learner IP addresses. |
+| Insecure random number generator | Warning | Bundled NIST SIP library | False positive for app code. Session tokens and recovery tokens come from Supabase Auth; the app does not generate security tokens with `java.util.Random`. |
+| SHA-1 is a weak hash | Warning | Bundled Ktor/SIP libraries | False positive for app code. No app auth, password, or data-integrity path uses SHA-1. |
+| App creates a temp file | Warning | Bundled JNA library | False positive for app code. Lingo writes drafts and progress to preferences, not temp files. |
+| App logs information | Info | Bundled libraries | No `Log`/`println` calls exist in the review, theme, or progress paths. |
+| App copies data to clipboard | Info | `CallHubScreen` | The copied value is the learner’s friend code, which is meant to be shared. No token or account secret is copied. |
+| This app may contain hardcoded secrets | Warning | APK strings | Triaged: the only JWT is the public Supabase anon token; the remaining matches are public library constants and test vectors. No service-role key, LiveKit secret, SMTP password, or private key. |
+| No privacy trackers | Secure | APK | Confirmed: no analytics, ads, or crash SDK. |
+
+MobSF’s “hardcoded secrets” list was checked value by value against the known
+public anon JWT and library constants. The full APK scan found exactly one JWT
+and no secret material.
+
+## Open risks accepted for v1.10
 
 | ID | Severity | Risk | Why it is open | Mitigation / next step |
 | --- | --- | --- | --- | --- |
-| A-01 | Medium | The release is signed with the local Android debug key (`CN=Android Debug`) instead of a protected release key. The key is not committed, but it is not stored to release-key standards. | Rotating the signing key would prevent v1.9 from installing over existing v1.8 builds and could strand learners’ local progress. The owner chose update continuity for this release. | Keep the keystore offline and backed up. Introduce a managed release key with an explicit migration/reinstall plan in a later version; do not lose the current key while updates are expected. |
+| A-01 | Medium | The release is signed with the local Android debug key (`CN=Android Debug`) instead of a protected release key. The key is not committed, but it is not stored to release-key standards. | Rotating the signing key would prevent 1.10 from installing over existing 1.9.1 builds and could strand learners’ local progress. The owner chose update continuity for this release. | Keep the keystore offline and backed up. Introduce a managed release key with an explicit migration/reinstall plan in a later version; do not lose the current key while updates are expected. |
 | A-02 | Medium | Password recovery uses the custom scheme `lingo://reset-password`. Another installed app can register the same scheme and may receive the recovery link. Supabase recovery tokens remain valid for their normal lifetime (about one hour), so possessing the link again before expiry allows another password change even after it has been used once. | The Supabase project has no first-party HTTPS domain for Android App Links, and adding one would expand this release’s scope. The recovery token is kept in memory only and is never persisted by the app; it is discarded after a successful change, but the server-side token lifetime is unchanged. | Move recovery to a verified HTTPS App Link when a project domain is available, or exchange the link for a one-time server-side nonce. Users should ignore unexpected apps offered to open a recovery link and request a fresh link if one may have leaked. |
 | A-03 | Low | Email confirmation is disabled (`mailer_autoconfirm=true`), so an address is not proven to belong to the signer. | Google Workspace SMTP migration is deferred; confirmation email delivery is not yet reliable. Auth email sending is rate-limited. | Re-enable confirmation after the SMTP migration, then test sign-up and recovery on a real device. |
 | A-04 | Low | The launcher activity is exported and flagged by Semgrep; `androidx.profileinstaller.ProfileInstallReceiver` is also exported. | Android requires the launcher activity to be exported. The profile installer receiver is guarded by the system-only `android.permission.DUMP` permission. | No change. The activity opens the normal login-gated UI; it grants no privileged action. Re-check the merged manifest each release. |
+| A-05 | Low | `android:allowBackup=true` lets a device owner with USB debugging extract local app data, including XP, streaks, review items, and writing drafts. | Android backup is how learners keep local progress across a device migration; disabling it would lose that benefit. The Supabase session and legacy auth file are excluded, so a backup cannot be replayed to sign in. | Keep the backup exclusions for `lingo_secure_auth.xml` and `com.lingo.app_preferences.xml`. Re-check the rules each release; consider a user-facing export instead of broad backup in a later version. |
 
 ## Verification limits
 
@@ -206,8 +246,12 @@ scanner results for the final v1.10 APK are recorded below.
 - No external penetration test or OWASP ZAP run was performed. ZAP targets web
   deployments; Lingo’s public web surface is limited to Supabase Auth and the static auth
   callback.
-- The host Semgrep binary hit a memory fault on the Kotlin rules; the full scan was run in
-  the Docker image with 4 GB and completed successfully.
+- MobSF 4.6.5 was run against the release APK in Docker. Its one high and nine
+  warning findings are triaged above; none is an unaccepted app-code issue.
+- Semgrep was run in the Docker image with 4 GB. The host binary was not used
+  because earlier Kotlin-rule runs hit a memory fault.
+- The Android 8.0 / API 26 runtime was not exercised; `minSdk` is verified by
+  build and lint. The physical phone runs Android 16 / API 36.
 
 ## Conclusion
 
@@ -229,7 +273,10 @@ the local release-candidate build and the full phone regression are recorded abo
 The v1.10 release adds two local preferences and a pure-UI theme. It adds no
 permissions, dependencies, network endpoints, accounts, exported components, or
 backend schema. The queue decoder is bounded and validates every field, and the
-theme enum falls back safely. The release SHA-256 is
+theme enum falls back safely. Gitleaks, OSV, Semgrep, Android lint, and MobSF
+were run against the release candidate; the only open high finding is the
+accepted debug signing key (A-01), and each MobSF warning is either an accepted
+product choice or a bundled-library false positive. The release SHA-256 is
 `9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1`; the
-release-candidate build, final scanner evidence, and the data-preserving
-over-install are recorded above and in `TEST-REPORT.md`.
+release-candidate build, scanner evidence, and the data-preserving over-install
+are recorded above and in `TEST-REPORT.md`.
