@@ -1,17 +1,23 @@
-# Test plan — Lingo English 1.9
+# Test plan — Lingo English 1.10
 
-Build under test: `1.9` (`versionCode 10`), release APK signed with the debug key.  
+Build under test: `1.10.0` (`versionCode 12`), release APK signed with the debug key.  
 Platform: Android (the project decision is Android-only; iOS is out of scope).  
-Test window: 2026-11-01.
+Test window: 2026-11-05 to 2026-11-06.
 
 ## 1. Scope
 
-This plan proves the v1.9 app works end to end on real Android runtimes, including the
-new launch cutscene and once-per-lesson intro, the preserved v1.8 features, and the
-security posture of the release APK. It covers:
+This plan proves the v1.10 app works end to end on real Android runtimes, including the
+new local Smart Review queue and optional Night appearance, the preserved v1.9 launch
+cutscene and once-per-lesson intro, the preserved v1.8 features, and the security posture
+of the release APK. It covers:
 
 - every screen and tab, including login, Home, Learn, Practice, Call, Progress, Settings,
   all lesson types, weekly tests, level exams, and the call flow;
+- Smart Review: the Home and Practice cards, the quiz-result link, a five-item session,
+  two-consecutive-correct clearing, a later miss restarting the item, review XP and the
+  80% bonus, empty states, queue persistence, and **Review again**;
+- the optional Night appearance: the Settings selector, immediate re-theming, persistence
+  across force-stop and reset, system-bar icons, and contrast in both palettes;
 - the full launch cutscene on first start after install/update, the short sting on later
   cold starts, tap/Skip escape, recovery-link bypass, and reduced-motion behaviour;
 - the once-per-lesson intro, its first-step preview, creative chips, Begin routing,
@@ -37,25 +43,25 @@ through the app.
 | E2 | Same emulator, 720×1280 | 360×640 dp | 320 dpi | Small-phone layout (earlier pass) |
 | E3 | Same emulator, 1440×3000 | 480×1000 dp | 480 dpi | Large-phone layout (earlier pass) |
 | E4 | Same emulator, portrait rotated to landscape | 914×411 dp | 420 dpi | Rotation survival (earlier pass) |
-| E5 | Physical Samsung SM-A546E, Android 16 / API 36, 1080×2340 | 360×780 dp | 384 dpi override | Primary v1.9 device; display and font settings must not be changed |
+| E5 | Physical Samsung SM-A546E, Android 16 / API 36, 1080×2340 | 360×780 dp | 384 dpi override | Primary v1.10 device; display and font settings must not be changed |
 | E6 | Android 8 / API 26 | — | — | `minSdk` target; no API 26 system image available, so runtime coverage is API 36/37 only |
 
 Font scale: 1.0 on the physical phone; 1.3 and 2.0 on the emulator for the accessibility
 pass. The phone’s font scale, display size, density, and rotation are not changed.  
-Theme: light only (the app intentionally has no dark mode).  
+Theme: Warm paper by default, with the optional Night appearance walked in Settings.  
 Locale: English. Network: normal, then offline, then restored.
 
-The physical phone is the remaining v1.9 QA device. The emulator is stopped and is not
-used for the remaining device checks; its earlier v1.9 results are retained only for the
-settings that cannot be changed on the owner’s phone (font scale, reduced motion,
-TalkBack).
+The physical phone is the v1.10 QA device. The emulator is stopped and is not used for the
+remaining device checks; its earlier v1.9 results are retained only for the settings that
+cannot be changed on the owner’s phone (font scale, reduced motion, TalkBack).
 
 ### Test accounts
 
 - `qa-test-<random>@example.com` — fresh account for sign-up, recovery, and call tests.
 - A second temporary account created through the Supabase API for friend-code and
   blocking tests. Both accounts are deleted after the run.
-- Local progress is reset only on the emulator, never on the physical phone.
+- Local progress is reset only after a pre-test backup, and the backup is restored
+  byte-for-byte on the physical phone. The owner’s live data is never left cleared.
 
 ## 3. Journeys
 
@@ -106,11 +112,14 @@ password is rejected; errors are actionable.
 1. Check greeting, streak, XP, daily goal, today’s lesson, and the Begin action.
 2. Check the conditional “next step” card states: weekly test due, level exam ready,
    free practice, and the hidden state when the hero already offers the next lesson.
-3. Open Settings from the header; open the weekly check-in.
+3. Check the Smart Review card when items are queued: count, estimated time, and start.
+4. Open Settings from the header; open the weekly check-in.
 
-Edge cases: zero XP, completed daily goal, offline, process restart.  
+Edge cases: zero XP, completed daily goal, empty review queue, offline, process restart,
+Night appearance.  
 Correct: only one recommendation appears; dates/streaks are correct; the card is not
-duplicated by the hero.
+duplicated by the hero; the review count matches the stored queue and opens the same
+five-item session as Practice.
 
 ### J5 — Lessons, entry intro, and creative tasks
 
@@ -164,11 +173,14 @@ failed attempt can be retried according to the retake rule.
 1. Complete the daily challenge.
 2. Open Real Talk, Word Tiles, flashcards, word bank, roleplay, sentence tiles, and
    pronunciation.
-3. Finish each and return to Practice.
+3. Open Smart Review from Practice in both the queued and empty states.
+4. Finish each and return to Practice.
 
-Edge cases: wrong answers, empty word bank, no TTS, rotation, offline.  
+Edge cases: wrong answers, empty word bank, empty review queue, no TTS, rotation,
+offline.  
 Correct: answers and feedback are correct, progress is saved, and no workout traps the
-user on a blank screen.
+user on a blank screen; the review card says how many items are waiting and the empty
+state offers no dead action.
 
 ### J9 — Call setup, matching, and friend codes
 
@@ -215,14 +227,19 @@ data is exposed, and offline shows a retry rather than a crash.
    notification.
 3. Deny notifications and check the blocked guidance and system-settings link.
 4. Disable reminders and confirm the alarm is cancelled.
-5. Open Reset progress, cancel, then confirm the copy and destructive action.
-6. Check the version label.
+5. Open Appearance, switch to Night, confirm the whole app re-themes, force-stop,
+   relaunch, and confirm Night is still selected; switch back to Warm paper.
+6. While Night is selected, open Reset progress, cancel, then confirm the copy and
+   destructive action; confirm the reset keeps Night selected.
+7. Check the version label.
 
 Edge cases: permission denied twice, notifications disabled in system settings, time
-picker at 00:00/23:59, reboot after enabling, app update after enabling.  
+picker at 00:00/23:59, reboot after enabling, app update after enabling, unknown stored
+theme value, reset while Night is selected.  
 Correct: reminders are off by default at 19:00; enabling schedules one inexact alarm;
 practising that day suppresses the reminder; denial keeps reminders off with guidance;
-Reset clears local progress but keeps the account and friend code.
+Reset clears local progress but keeps the account, friend code, daily goal, launch marker,
+and appearance; Warm paper is the default for a fresh install.
 
 ### J13 — Session and account lifecycle
 
@@ -230,11 +247,13 @@ Reset clears local progress but keeps the account and friend code.
 2. Rotate, background for several minutes, and return.
 3. Sign out and confirm the gate returns.
 4. Sign in again and confirm the profile/friend code is unchanged.
+5. Queue review items, force-stop, relaunch, and confirm the Home and Practice counts
+   still match.
 
 Edge cases: corrupted encrypted prefs, Keystore unavailable (code fallback), expired
-refresh token, offline relaunch.  
+refresh token, offline relaunch, queued review items across process death.  
 Correct: tokens stay in Keystore-backed storage, the app never falls back to plaintext,
-and sign-out clears the session.
+sign-out clears the session, and the local review queue survives restart.
 
 ### J14 — Offline and recovery
 
@@ -264,16 +283,18 @@ loop the prompt.
 
 ### J16 — Data preservation and upgrade
 
-1. Record XP, streak, completed lessons, writing draft, reminder, and daily goal.
-2. Install the v1.9 release APK over the v1.8 build with `adb install -r`.
+1. Record XP, streak, completed lessons, writing draft, reminder, daily goal, queued
+   review items, and the selected appearance.
+2. Install the v1.10 release APK over the v1.9 build with `adb install -r`.
 3. Launch and confirm the full cutscene appears once for the new version, then compare
    all values.
 4. Force-stop and relaunch; confirm the sting appears and the values are unchanged.
 5. Confirm no test-only intro markers remain if the phone was used for QA.
 
-Correct: local progress, the encrypted session, reminder, and daily goal survive; the
-full cutscene appears once for the update; later starts get the sting; no re-login or
-data clear is required; the phone’s display and font settings are untouched.
+Correct: local progress, the encrypted session, reminder, daily goal, review queue, and
+appearance survive; the full cutscene appears once for the update; later starts get the
+sting; no re-login or data clear is required; the phone’s display and font settings are
+untouched.
 
 ### J17 — Accessibility
 
@@ -342,11 +363,71 @@ Correct: one intro per not-yet-completed lesson; marked seen on entry; no replay
 backing out; completed lessons always direct; all entry points use the same wrapper;
 chips are ephemeral local UI state.
 
+### J22 — Smart Review
+
+1. Miss an auto-scorable lesson question, finish the lesson, and confirm **Review tricky
+   questions** appears on the quiz result.
+2. Open it and confirm the review uses the same exercise UI, five items or fewer, and
+   shows the source lesson.
+3. Answer one item correctly twice in a row and confirm it leaves the queue; answer
+   another incorrectly after a first correct answer and confirm its streak resets.
+4. Finish a session and confirm the result shows correct answers, XP, and the 80% bonus
+   only at 80% or above.
+5. Check Home and Practice before and after the queue empties.
+6. Force-stop and relaunch, then reopen review from each entry point.
+
+Edge cases: queue with one item, queue with more than five, wrong answer on the first
+review, 100%, 80%, and 60% sessions, creative `WRITE` tasks, unknown saved exercise ID,
+malformed stored queue, offline, Night.  
+Correct: only auto-scorable bundled exercises enter the queue; a miss adds an item, one
+correct keeps it, a second consecutive correct clears it, and a later miss restarts the
+streak; review XP is 4 per correct plus 10 for 80%+, counts once toward daily XP, goal,
+streak, and active days, and does not change quiz accuracy, perfect quizzes,
+`todayQuizzes`, or the daily quick challenge; the queue is capped and survives restart;
+no creative task is ever queued.
+
+### J23 — Night appearance
+
+1. Open Settings, confirm Warm paper is selected by default for the owner state, and
+   select Night.
+2. Walk Home, Learn/level path, a lesson slide and quiz, Practice, Real Talk, Word Tiles,
+   flashcards, word bank, Call, Progress, the Settings sheet, and a weekly test.
+3. Check text, secondary text, controls, progress bars, stickers, status-bar icons, and
+   navigation-bar icons in both palettes.
+4. Force-stop and relaunch in Night; confirm the selected appearance and system bars.
+5. Switch back to Warm paper and confirm the original palette returns.
+
+Edge cases: selecting the already-selected row, switching during a lesson, resetting
+progress in Night, launch cutscene, call screens, 200% font, TalkBack.  
+Correct: Night applies immediately and persists; Warm paper remains the default; the
+launch cutscene and call screens keep their intentional dark-forest treatment rather than
+inverting; body text is at least 4.5:1 and large text/UI components at least 3:1; system
+bars match the palette; no screen is left with an unreadable paper-on-paper or
+ink-on-ink pair.
+
+### J24 — Review again and reset persistence
+
+1. Finish a review session with items still queued and tap **Review again**.
+2. Confirm a fresh five-item session starts and does not resurrect cleared items.
+3. Finish the queue and confirm the empty state and the Review again action are sensible.
+4. With Night selected, back up the app data, open Reset progress, cancel once, then
+   confirm the reset.
+5. Confirm XP, streak, completed lessons, drafts, and review items clear; daily goal,
+   launch marker, account, friend code, and Night remain.
+6. Restore the backup byte-for-byte, force-stop, relaunch, and confirm the owner’s state
+   is back.
+
+Edge cases: Review again with an empty queue, reset while a session is open, reset in
+Warm paper, process death immediately after reset.  
+Correct: Review again opens a fresh session over the remaining queue; reset preserves the
+appearance and launch marker, clears only learning data, keeps the account, and a restored
+backup returns the exact pre-test state.
+
 ## 4. How each layer is tested
 
 | Layer | Tool / method |
 | --- | --- |
-| Unit logic | Gradle `:app:testDebugUnitTest` — content audit, reminder schedule, next-step selection, cutscene policy, lesson sparks |
+| Unit logic | Gradle `:app:testDebugUnitTest` — content audit, reminder schedule, next-step selection, cutscene policy, lesson sparks, `ReviewQueue` rules/codec, design-token contrast |
 | API / RLS | Supabase REST integration test with a temporary user; direct writes must return 403/42501 |
 | End-to-end UI | Release APK on the physical Samsung phone, driven with `adb`/UIAutomator; earlier emulator screenshots retained for settings that cannot be changed |
 | Accessibility | Android lint accessibility checks, UIAutomator semantics, earlier emulator TalkBack/font-scale pass |
@@ -376,10 +457,16 @@ chips are ephemeral local UI state.
 - back/leave during a lesson, test, exam, ringing call, and active call;
 - rotate during an exercise, a timed test, and a call;
 - notification denied, microphone denied, microphone revoked mid-call;
-- offline launch, offline lesson intro, offline leaderboard, offline matching, network restored;
+- review: first wrong answer, one correct then a miss, second consecutive correct,
+  80% and 60% sessions, empty queue, Review again, unknown/malformed stored item;
+- appearance: Night selected across restart, reset, lesson, test, and call; unknown
+  stored theme value falls back to Warm paper;
+- offline launch, offline lesson intro, offline review, offline leaderboard, offline
+  matching, network restored;
 - wrong friend code, own friend code, offline friend, busy friend, blocked pair;
 - expired recovery link and reused recovery link;
-- process death/relaunch with an active session;
+- process death/relaunch with an active session and a queued review;
+- reset while Night is selected, then restore the pre-test backup;
 - upgrade over the previous build without clearing data.
 
 ## 6. Entry and exit criteria
@@ -387,7 +474,9 @@ chips are ephemeral local UI state.
 Entry: release APK builds, unit tests and lint pass, security stage is closed, the
 physical phone is unlocked and connected, and the owner’s session is preserved.
 
-Exit: every v1.9-specific journey passes on the physical phone; the earlier emulator
+Exit: every v1.10-specific journey (Smart Review, Night appearance, Review again, reset
+persistence) passes on the physical phone; the retained v1.9 launch/intro and v1.8
+journeys still pass or retain recorded evidence; the earlier emulator
 accessibility/layout pass is recorded; no serious accessibility violation; no unresolved
 crash, ANR, data loss, or security regression; `TEST-REPORT.md` records the results,
 failures fixed, and anything still open.

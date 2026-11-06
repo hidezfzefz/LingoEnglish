@@ -10,8 +10,10 @@
 **Result: pass.** Both features were exercised on the physical phone with the
 owner still signed in and the display size, density, font scale, and rotation
 unchanged. The final release APK over-installed over the debug build with local
-data preserved, opened on the Home screen in 892 ms (`am start -W` TotalTime),
-and showed 270 XP, a 3-day streak, 12 queued review items, and Warm paper.
+data preserved, opened on the Home screen in 587 ms (`am start -W` TotalTime),
+and showed 296 XP, a 4-day streak, 12 queued review items, and Warm paper. The
+owner used the app between the earlier snapshot and this pass, so the report uses
+the larger live totals that were preserved.
 
 ### Smart Review
 
@@ -28,6 +30,13 @@ and showed 270 XP, a 3-day streak, 12 queued review items, and Warm paper.
 - A wrong quiz answer revealed “Review tricky questions”; the link opened the
   same review session, and Back returned to the preserved quiz result screen
   with the score and answers intact.
+- Final 80% pass: 4 of 5 correct awarded 26 XP (4 × 4 correct plus the 10 XP
+  bonus), left 11 items queued, and showed **Review again**. Review again opened
+  a fresh five-item session beginning with the next queued question; the item
+  cleared in the previous session did not return.
+- Offline pass: after force-stop, the release cold-started in 1,963 ms with
+  Wi-Fi and mobile data off, showed the 12-item Home card, and opened a review
+  question from bundled content with no network.
 - The queue survived force-stop and relaunch. The review session itself
   restarted safely instead of resuming a stale snapshot. No crash or ANR
   occurred in any review path.
@@ -49,10 +58,27 @@ and showed 270 XP, a 3-day streak, 12 queued review items, and Warm paper.
   the dialog window was attached; Warm paper showed dark icons. The launch
   cutscene and call screens stayed on the Paper palette so their dark forest
   treatment did not invert.
+- Night survived force-stop/relaunch: the Home background stayed dark, the
+  Settings check mark stayed on Night, and the status/navigation icons stayed
+  light.
+- Reset persistence: with Night selected, the reset dialog was cancelled once
+  and the state was unchanged; the confirmed reset cleared XP, streak, review
+  items, and drafts, but kept Night, the 80 XP daily goal, launch marker `12`,
+  the signed-in session, and the friend code. The pre-test backup was then
+  restored byte-for-byte and Warm paper returned.
 - `DesignTokensTest` checks the key text/background pairs: body text at least
   4.5:1, large text and UI components at least 3:1, in both palettes.
 - The Night fixes below were found during this walk and rechecked after the
   final build.
+
+### Focused journey results
+
+| Journey | Result | Evidence |
+| --- | --- | --- |
+| J22 — Smart Review | Pass | Queue counts, five-item session, two-correct clearing, miss reset, 80% XP bonus, empty states, quiz-result link, and offline loading all behaved as specified. |
+| J23 — Night appearance | Pass | Immediate switch, check mark, full-screen walk, force-stop persistence, system bars, and both palette contrast suites passed. |
+| J24 — Review again and reset | Pass | 4/5 session showed 26 XP and 11 remaining; Review again started fresh with the next queued item; reset kept Night/goal/marker/session; backup restore returned the exact pre-test state. |
+| J13 / J14 — Session and offline | Pass | Signed-in session and 12-item queue survived force-stop; offline cold start took 1,963 ms and review content stayed available. |
 
 ### Automated checks
 
@@ -62,8 +88,9 @@ and showed 270 XP, a 3-day streak, 12 queued review items, and Warm paper.
 | `:app:lintDebug` | 0 errors, 44 warnings (all pre-existing `UseKtx` style suggestions; no new warning category) |
 | Release build | `:app:assembleRelease` successful; 73,046,449 bytes |
 | Debug build | `:app:assembleDebug` successful; debug and release both use the debug signing key, so the over-install preserved data |
-| Cold start | `am start -W`: TotalTime 892 ms, WaitTime 905 ms |
-| Release install | `adb install -r app-release.apk` over the debug build: Success; version `1.10.0` (`12`); signed-in owner state intact |
+| Cold start | Final release `am start -W`: TotalTime 587 ms, WaitTime 591 ms; offline release cold start 1,963 ms |
+| Release install | `adb install -r app-release.apk` over the debug build: Success; version `1.10.0` (`12`); signed-in owner state intact; no `DEBUGGABLE` flag |
+| Reset / restore | Night reset removed learning data but kept appearance, goal, launch marker, and session; tar restore returned the exact pre-test `lingo_progress.xml` SHA-256 `576b2328…` |
 
 Final release artifact:
 
@@ -95,15 +122,19 @@ Final release artifact:
 
 ### Data preservation and cleanup
 
-- The owner’s pre-test progress was backed up outside the repo to
-  `/tmp/opencode/lingo-v110-progress-backup-2026-11-05.tar` (SHA-256
-  `f1bae0de…`) and restored byte-for-byte after Night and weekly-test probes
-  (restored prefs SHA-256 `3c767c67…`).
+- The owner’s pre-test app data was backed up outside the repo to
+  `/tmp/opencode/lingo-v110-owner-2026-11-06.tar` (245,248 bytes, SHA-256
+  `9efa1cc8…`). It contains the 296 XP / 4-day / 12-item state plus the encrypted
+  session.
+- The reset probe used the same-version `1.10.0` debuggable build because
+  `run-as` is required for a byte-level backup and restore. The release build was
+  reinstalled immediately afterward. The restored `lingo_progress.xml` hash
+  `576b2328…` and `lingo_secure_auth.xml` hash `162d6a64…` both match the backup.
 - The final state is the release build `1.10.0` (`12`), still signed in, with
-  270 XP, a 3-day streak, 12 queued review items, completed-lesson and draft
+  296 XP, a 4-day streak, 12 queued review items, completed-lesson and draft
   data intact, and Warm paper as the appearance.
-- No app data was cleared, the app was not uninstalled, and the owner was not
-  signed out.
+- No app data was left cleared, the app was not uninstalled, and the owner was
+  not signed out.
 
 ### Environment limits
 
@@ -113,6 +144,13 @@ the v1.9 emulator evidence; fully signed-out, two-phone audio, physical-phone
 reminder tap, recovery-email delivery, and API 26 runtime remain owner checks
 or build/lint evidence. Night-specific TalkBack labels reuse the existing
 semantics; the appearance rows are `selectable` with `Role.RadioButton`.
+
+The v1.10 Smart Review and Night walks ran at the phone’s normal 360×780 dp,
+font scale 1.0, and portrait orientation. The 360×640 dp, 480×1000 dp, landscape,
+and 200% font layouts retain the v1.9 emulator evidence because changing the
+owner’s display, font, or rotation is not permitted. The reset/restore probe used
+the same-version debuggable build only to access app-private files; the final
+release APK was reinstalled and its preserved state and cold start were verified.
 
 ---
 
