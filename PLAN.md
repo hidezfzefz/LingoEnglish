@@ -201,12 +201,14 @@ opens signed in with the baseline data intact.
       scaffolding, and test harness. Then call `next_stage` for Build screens.
 - [x] **Build screens:** complete M1–M6. Then call `next_stage` for Security
       review.
-- [ ] **Security review:** run the required checks, fix findings, update
+- [x] **Security review:** run the required checks, fix findings, update
       `SECURITY-REVIEW.md`, then call `next_stage` for Test thoroughly.
-- [ ] **Test thoroughly:** run the full matrix below, record evidence in
+- [x] **Test thoroughly:** run the full matrix below, record evidence in
       `TEST-REPORT.md`, then call `next_stage` for Ship.
-- [ ] **Ship:** CI green, release published, asset verified, docs updated, and
-      the published APK over-installed. Then finish the Convio pipeline.
+- [x] **Ship:** CI green, release published at
+      `https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.10.0`, asset
+      verified, docs updated, and the published APK over-installed. Convio
+      pipeline finished.
 
 ## Verification matrix
 
