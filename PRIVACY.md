@@ -1,6 +1,6 @@
-# Privacy — Lingo English 1.9
+# Privacy — Lingo English 1.10
 
-Last updated: 2026-11-03
+Last updated: 2026-11-07
 
 Lingo is an open-source Android app for learning English. This note explains
 what the app stores, what leaves the phone, and how to ask for deletion. It
@@ -13,13 +13,20 @@ policy.
   saved words, sticker choices and creative-writing drafts.
 - One-time launch and lesson-intro markers (an app version code and lesson IDs),
   so the cutscene and intro are not repeated.
+- Your Smart Review queue: exercise IDs, miss counts, and correct-answer streaks.
+  The queue is built only from bundled, auto-scorable exercises and stays on the
+  phone.
+- Your chosen appearance (Warm paper or Night). This is a local display
+  preference and is not sent anywhere.
 - Your daily goal and reminder time. Reminders are local Android alarms and
   never send data to a server.
 - Your Supabase session token, encrypted with an Android Keystore-backed key.
   It is excluded from Android backups.
 
-You can erase this local data from **Settings → Reset progress** inside the app.
-That does not delete your account.
+You can erase this local learning data from **Settings → Reset progress** inside
+the app. Reset clears the review queue but keeps your appearance choice, daily
+goal, launch marker, account, and friend code. That does not delete your
+account.
 
 ## What is sent to Supabase
 
@@ -50,6 +57,8 @@ privacy terms apply to the relay service.
 - No email marketing.
 - No network call, sound, or new learner-data field from the launch cutscene or
   lesson intro. The creative prompt chips are bundled text and are not saved.
+- No network call from Smart Review or the appearance setting. Review answers
+  and the chosen palette are processed and stored only on the device.
 
 ## Retention and deletion
 
@@ -67,6 +76,7 @@ children, and accounts should not be created for them.
 
 ## Changes and contact
 
-This policy is versioned with the app. Material changes will be noted in the
-release notes. Questions and deletion requests:
+This policy is versioned with the app. v1.10 adds the local Smart Review queue
+and appearance choice; neither adds server data or a new network call. Material
+changes will be noted in the release notes. Questions and deletion requests:
 <https://github.com/hidezfzefz/LingoEnglish/issues>.
