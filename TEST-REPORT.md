@@ -5,7 +5,7 @@
 - Build: `1.10.0` (`versionCode 12`), release APK signed with the debug key
 - Device: Samsung SM-A546E, Android 16 / API 36 (1080×2340, density 450, font
   scale 1.0, portrait)
-- Test window: 2026-11-05 to 2026-11-06
+- Test window: 2026-11-05 to 2026-11-07
 
 **Result: pass.** Both features were exercised on the physical phone with the
 owner still signed in and the display size, density, font scale, and rotation
@@ -101,8 +101,17 @@ Final release artifact:
 | SHA-256 | `9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1` |
 | Signature | APK Signature Scheme v2, `CN=Android Debug`, cert SHA-256 `3888438c…` (accepted risk A-01) |
 | Version | `1.10.0` (`versionCode 12`), min SDK 26, target SDK 37 |
-| CI | Pending v1.10.0 push |
-| Release | Pending v1.10.0 publication |
+| CI | Pass — [Content audit 42408086000](https://github.com/hidezfzefz/LingoEnglish/actions/runs/42408086000) on `83f1153` |
+| Release | [v1.10.0](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.10.0) |
+| Release asset | Downloaded `LingoEnglish-1.10.0.apk` from the v1.10.0 release; SHA-256, V2 certificate, size, and version match the tested APK |
+
+Post-release verification (2026-11-07): the published `LingoEnglish-1.10.0.apk`
+was downloaded again, its SHA-256 matched
+`9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1`, and it
+installed with `adb install -r` over the existing 1.10.0 release on the phone.
+The version stayed `1.10.0` (`12`), the cold start reached Home in 399 ms, and
+the signed-in session, 296 XP, 4-day streak, 12 queued review items, and Warm
+paper were preserved.
 
 ### Fixes made during testing
 

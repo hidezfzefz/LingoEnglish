@@ -222,6 +222,17 @@ The v1.10, v1.9.1, and v1.9 launch evidence is in [LAUNCH-CHECKLIST.md](LAUNCH-C
 [TEST-PLAN.md](TEST-PLAN.md), and [TEST-REPORT.md](TEST-REPORT.md). Data handling
 is described in [PRIVACY.md](PRIVACY.md).
 
+## Accounts and ownership
+
+- **GitHub:** the owner’s `hidezfzefz` account owns the repository, tags, CI,
+  and public release assets. This is the only distribution account.
+- **Supabase:** the owner-managed project holds accounts, RLS policies, and the
+  backend. Only the public `anon` key is compiled into the app.
+- **LiveKit:** the owner-managed project supplies call rooms. Its API key and
+  secret stay in `supabase/.env.local` and the edge function environment.
+- **No other accounts:** there is no Play Store, hosting, analytics, ads,
+  payment, or crash-reporting account in this release.
+
 ## Project layout
 
 ```text
@@ -266,12 +277,15 @@ CI runs the same audit on every push and pull request. It verifies:
 - a word target, success criteria, and model answer for every creative task;
 - a launch-cutscene rule for fresh installs, updates, later cold starts, and
   recovery links;
-- a creative spark with two or three usable chips for every lesson.
+- a creative spark with two or three usable chips for every lesson;
+- the two-consecutive-correct review rule, queue codec bounds, and review XP
+  formula;
+- the Paper and Night text/background contrast pairs.
 
 On-device smoke tests cover the login gate, password recovery, lessons,
-creative writing, weekly tests, live calls, and data-preserving upgrades. The
-full v1.9.1 and v1.9 matrix and evidence are in [TEST-PLAN.md](TEST-PLAN.md) and
-[TEST-REPORT.md](TEST-REPORT.md).
+creative writing, weekly tests, live calls, Smart Review, Night appearance, and
+data-preserving upgrades. The full v1.10, v1.9.1, and v1.9 matrix and evidence
+are in [TEST-PLAN.md](TEST-PLAN.md) and [TEST-REPORT.md](TEST-REPORT.md).
 
 ## Privacy
 

@@ -40,12 +40,12 @@ exported component, backend schema change, or new service.
 | --- | --- |
 | Package | `com.lingo.app` |
 | Version | `1.10.0` (`versionCode 12`) |
-| APK | `app-release.apk`, 73,046,449 bytes |
-| Published | Pending v1.10.0 release |
-| CI | Pending v1.10.0 push |
+| APK | `LingoEnglish-1.10.0.apk`, 73,046,449 bytes |
+| Published | [v1.10.0](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.10.0), tag at `83f1153` |
+| CI | [Content audit 42408086000](https://github.com/hidezfzefz/LingoEnglish/actions/runs/42408086000) — pass |
 | SHA-256 | `9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1` |
 | Signature | APK Signature Scheme v2, `CN=Android Debug` (see A-01) |
-| Published asset | Pending; verify after publication. |
+| Published asset | Downloaded `LingoEnglish-1.10.0.apk` from the v1.10.0 release: SHA-256, V2 certificate, size, and version match the reviewed APK. Installed with `adb install -r` over the existing 1.10.0 build; 296 XP, 4-day streak, 12 review items, and Warm paper preserved. |
 | Minimum / target SDK | 26 / 37 |
 
 The app is distributed as a sideloaded APK from GitHub. There is no Play Store
@@ -279,4 +279,7 @@ accepted debug signing key (A-01), and each MobSF warning is either an accepted
 product choice or a bundled-library false positive. The release SHA-256 is
 `9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1`; the
 release-candidate build, scanner evidence, and the data-preserving over-install
-are recorded above and in `TEST-REPORT.md`.
+are recorded above and in `TEST-REPORT.md`. The release is published at
+[v1.10.0](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.10.0); the
+downloaded `LingoEnglish-1.10.0.apk` hash, V2 certificate, size, and version
+match the reviewed APK, and it over-installed with owner data preserved.

@@ -1,9 +1,9 @@
 # Launch checklist — Lingo English 1.10
 
-- Reviewed: 2026-11-06
+- Reviewed: 2026-11-07
 - Release: `1.10.0` (`versionCode 12`), APK signed with the project debug key
 - Distribution: public GitHub Release, sideloaded APK (no Play Store listing)
-- Status: **release candidate** — build and phone QA pass; publication pending
+- Status: **shipped** — v1.10.0 published and verified on 2026-11-07
 
 ## 1.10 release
 
@@ -14,7 +14,10 @@
 | Release build and artifact | **Done** | `:app:assembleRelease` successful; `app-release.apk` is 73,046,449 bytes with SHA-256 `9ea0ce05b867b07c4dc150bae8a7f0183e9a8883ede159eff77d058ddd20f1c1`. |
 | Phone QA and data preservation | **Done** | Release APK installed over the debug build with `adb install -r`; signed-in session, 296 XP, 4-day streak, 12 queued review items, completed lessons, drafts, reminders, daily goal, exam results, and weekly scores preserved. Final release cold start 587 ms (`am start -W`); offline 1,963 ms. The pre-test backup was restored byte-for-byte after the Night/reset probes. |
 | Privacy and permissions unchanged | **Done** | No new permissions, camera, location, payments, network endpoints, backend schema, or exported components. Review state and appearance choice stay in local preferences. `PRIVACY.md` still describes the data accurately; the review queue contains exercise IDs and counters only, and the appearance choice is a device preference. |
-| Public release published and smoke-tested | **Pending** | To be completed after the tag and GitHub Release: verify CI, publish `LingoEnglish-1.10.0.apk` and `.sha256`, download the asset, match SHA-256/size/version, and over-install it on the phone. |
+| CI and tag | **Done** | [Content audit 42408086000](https://github.com/hidezfzefz/LingoEnglish/actions/runs/42408086000) is green on `83f1153`; annotated tag `v1.10.0` points to that commit. |
+| Public release published and smoke-tested | **Done** | [v1.10.0](https://github.com/hidezfzefz/LingoEnglish/releases/tag/v1.10.0) published with `LingoEnglish-1.10.0.apk` (73,046,449 bytes) and `.sha256`. The downloaded asset’s SHA-256 `9ea0ce05…`, V2 certificate `3888438c…`, size, and version match the tested APK. It installed with `adb install -r` over the existing 1.10.0 build; 296 XP, 4-day streak, 12 review items, Warm paper, and the signed-in session were preserved; cold start 399 ms. |
+| Release page smoke test | **Done** | Convio browser check: HTTP 200 at 390 and 1440 px; title and release notes rendered, no horizontal overflow. GitHub’s own `payloads.json` 404 and two `<h1>` elements are platform artifacts, not app defects. |
+| Handover | **Done** | README covers download, build, backend configuration, secrets, release/rollback, and accounts; test and security reports are linked; open items are listed below. |
 
 The v1.9.1 and v1.9 sections below remain as baseline evidence for the release line.
 
@@ -104,7 +107,7 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
    phones.
 3. **Email confirmation and branded SMTP.** Confirmation stays off until the Google
    Workspace migration is completed. Recovery flow is tested app-side.
-4. **Debug signing key.** Accepted for v1.9 to preserve update continuity. A dedicated
+4. **Debug signing key.** Accepted for v1.10 to preserve update continuity. A dedicated
    release keystore is the next signing migration.
 5. **No point-in-time recovery.** Daily physical backups are enabled; PITR is not. Export
    important data before risky migrations.
@@ -120,6 +123,8 @@ Web-only items are marked **N/A** with the reason, rather than left implicit.
 - Re-check the published SHA-256 before announcing future releases.
 - Spot-check that the full launch appears once after the update and the sting on later
   cold starts; confirm a completed lesson still opens directly.
+- Spot-check that a missed question joins Smart Review, clears after two consecutive
+  correct answers, and that Night remains selected after a learning reset.
 
 ## Version 2 candidates
 
