@@ -1,6 +1,6 @@
 # Lingo English 1.10
 
-Released 2026-11-06. Android 8.0 (API 26) or newer.
+Released 2026-11-07. Android 8.0 (API 26) or newer.
 
 ## Smart Review
 
@@ -74,7 +74,12 @@ collection. Review state and the appearance choice stay local.
   Call, Progress, Settings, level path, and the weekly test session.
 - Smart Review was exercised end to end on the phone: two-right clearing,
   wrong-answer reset, XP and streak updates, Home/Practice/quiz-result entry
-  points, empty state, force-stop persistence, and Back returning to the
-  preserved quiz result.
+  points, empty state, force-stop persistence, Back returning to the preserved
+  quiz result, and **Review again** starting a fresh session over the remaining
+  queue.
+- Night survived force-stop/relaunch, and **Reset progress** kept Night, the
+  daily goal, the launch marker, and the signed-in session. The pre-test backup
+  was restored byte-for-byte afterward.
 - The release APK over-installed on the physical phone with the signed-in
-  session and owner data intact; cold start measured 892 ms.
+  session and owner data intact; final release cold start measured 587 ms and
+  the offline cold start 1,963 ms.
